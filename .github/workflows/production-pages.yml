@@ -7,6 +7,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: kirthiverse-pages-${{ github.ref }}
   cancel-in-progress: true
@@ -17,18 +20,97 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: 11.13.0
           run_install: false
-      - uses: actions/setup-node@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Run governed application checks
-        run: pnpm check
+      - name: Setup Chrome for browser QA
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v2
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Validate learning content
+        run: pnpm run validate:content
+      - name: Validate product experiences
+        run: pnpm run validate:experience
+      - name: Validate privacy and trust controls
+        run: pnpm run validate:trust
+      - name: Validate local data lifecycle
+        run: pnpm run validate:data
+      - name: Validate accessibility semantics
+        run: pnpm run validate:a11y
+      - name: Validate web metadata and discoverability
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm run validate:web 2>&1 | tee web-quality.log
+      - name: Validate release readiness
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm run validate:release 2>&1 | tee release-readiness.log
+      - name: Validate PWA deployment contract
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm run validate:pwa 2>&1 | tee pwa-contract.log
+      - name: Validate release operations and rollback readiness
+        run: pnpm run validate:ops
+      - name: Validate legacy entry and preview recovery
+        run: pnpm run validate:entry
+      - name: Validate runtime cache and stale-shell recovery
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm run validate:runtime 2>&1 | tee runtime-recovery.log
+      - name: Type check
+        run: pnpm run type-check
+      - name: Lint
+        run: pnpm run lint
+      - name: Build candidate artifact
+        env:
+          KVS_RELEASE_CHANNEL: ${{ github.event_name == 'push' && 'production' || 'preview' }}
+          KVS_BUILD_COMMIT: ${{ github.sha }}
+          KVS_BUILD_RUN_ID: ${{ github.run_id }}
+          KVS_SOURCE_REF: ${{ github.ref_name }}
+        run: pnpm run build
+      - name: Validate built artifact
+        run: pnpm run validate:dist
+      - name: Run real-browser and offline quality suite
+        env:
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+        run: pnpm run test:browser
+      - name: Upload validation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kirthiverse-validation-${{ github.run_id }}
+          path: |
+            web-quality.log
+            release-readiness.log
+            pwa-contract.log
+            runtime-recovery.log
+            artifacts/content-coverage
+          if-no-files-found: ignore
+          include-hidden-files: true
+          retention-days: 14
+      - name: Upload browser QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-smoke-${{ github.run_id }}
+          path: artifacts/browser-smoke
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 14
       - name: Apply production KirthiVerse identity to built artifact
         shell: bash
         run: |
@@ -53,7 +135,7 @@ jobs:
                   path.write_text(text, encoding='utf-8')
           Path('dist/CNAME').write_text('kirthiverse.omsaravanabhava.org\n', encoding='utf-8')
           PY
-      - name: Production identity and route gate
+      - name: Production identity gate
         shell: bash
         run: |
           set -euo pipefail
@@ -63,10 +145,10 @@ jobs:
           grep -RIl 'KirthiVerse' dist | head -n 1 >/dev/null
           ! grep -RIl 'arivukids.omsaravanabhava.org' dist | grep -q .
           ! grep -RIl 'ArivuKids' dist | grep -q .
-      - name: Configure Pages
+      - name: Configure GitHub Pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
-      - name: Upload Pages artifact
+      - name: Upload GitHub Pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v4
         with:
@@ -86,3 +168,39 @@ jobs:
       - name: Deploy KirthiVerse
         id: deployment
         uses: actions/deploy-pages@v4
+
+  live-verify:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout verification scripts
+        uses: actions/checkout@v6
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Verify live custom domain and deployed commit
+        env:
+          KVS_LIVE_URL: https://kirthiverse.omsaravanabhava.org/
+          KVS_EXPECTED_COMMIT: ${{ github.sha }}
+          KVS_MAX_ATTEMPTS: 12
+          KVS_RETRY_MS: '10000'
+          KVS_REQUEST_TIMEOUT_MS: '15000'
+        run: pnpm run test:live
+      - name: Upload live verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-site-smoke-${{ github.run_id }}
+          path: artifacts/live-site-smoke
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30
