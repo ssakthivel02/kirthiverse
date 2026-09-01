@@ -1,0 +1,89 @@
+name: KirthiVerse production candidate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: kirthiverse-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run governed application checks
+        run: pnpm check
+      - name: Apply production KirthiVerse identity to built artifact
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          replacements = {
+              'https://arivukids.omsaravanabhava.org': 'https://kirthiverse.omsaravanabhava.org',
+              'ArivuKids Learning Universe': 'KirthiVerse Learning Universe',
+              'ArivuKids': 'KirthiVerse',
+          }
+          for path in Path('dist').rglob('*'):
+              if not path.is_file() or path.suffix.lower() not in {'.html','.js','.css','.json','.xml','.txt','.webmanifest'}:
+                  continue
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  continue
+              original = text
+              for old, new in replacements.items():
+                  text = text.replace(old, new)
+              if text != original:
+                  path.write_text(text, encoding='utf-8')
+          PY
+      - name: Production identity and route gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/index.html
+          test -s dist/404.html
+          grep -RIl 'KirthiVerse' dist | head -n 1 >/dev/null
+          ! grep -RIl 'arivukids.omsaravanabhava.org' dist | grep -q .
+          ! grep -RIl 'ArivuKids' dist | grep -q .
+          for route in learning-worlds ai-tutor parent-dashboard privacy terms safety; do
+            test -s "dist/${route}.html" || test -d "dist/${route}" || true
+          done
+      - name: Configure Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-validate
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy KirthiVerse
+        id: deployment
+        uses: actions/deploy-pages@v4
