@@ -1,0 +1,28 @@
+name: Validate KirthiVerse flagship
+on:
+  pull_request:
+  push:
+    branches: [main, release/flagship-v1]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Structural quality gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f index.html
+          test -f assets/styles.css
+          test -f assets/app.js
+          test -f manifest.webmanifest
+          test -f sw.js
+          grep -q 'KirthiVerse' index.html
+          grep -q 'Ages 3–16' index.html
+          grep -q 'Parent-owned identity' index.html
+          grep -q 'prefers-reduced-motion' assets/styles.css
+          grep -q 'serviceWorker' assets/app.js
+          if grep -Rni 'Access-Control-Allow-Origin: \*' . --exclude-dir=.git; then exit 1; fi
+          if grep -RniE 'api[_-]?key[[:space:]]*[:=][[:space:]]*[^[:space:]]+' . --exclude-dir=.git --exclude='validate.yml'; then exit 1; fi
