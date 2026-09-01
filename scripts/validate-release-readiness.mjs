@@ -14,7 +14,7 @@ const status = JSON.parse(read('public/release-status.json'))
 const app = read('src/app/App.tsx')
 const robots = read('public/robots.txt')
 const sitemap = read('public/sitemap.xml')
-const workflow = read('.github/workflows/deploy-frontend.yml')
+const workflow = read('.github/workflows/production-pages.yml')
 const driftWatch = read('.github/workflows/production-drift-watch.yml')
 const browserSmoke = read('scripts/browser-smoke.mjs')
 const serviceWorker = read('public/sw.js')
@@ -45,27 +45,7 @@ check(status.browserRecoveryPage === '/reset-site.html', 'Release status records
 check(status.productionDriftWatchHours === 2, 'Release status records the two-hour drift-watch interval')
 check(Array.isArray(status.qualityGates) && status.qualityGates.length >= 33, 'Release status lists the expanded automated quality gates')
 for (const gate of [
-  'complete-lesson-quiz-coverage',
-  'form-label-and-aria-reference-smoke',
-  'learner-mistake-recovery-parent-journey',
-  'xp-anti-farming-regression',
-  'compiled-shell-offline-recovery',
-  'offline-trust-resource-recovery',
-  'pwa-root-deployment-contract',
-  'service-worker-cache-safety',
-  'metadata-and-discoverability-contract',
-  'tracking-free-public-shell',
-  'search-query-deep-link-contract',
-  'crawler-indexing-boundary',
-  'deployment-metadata-integrity',
-  'live-custom-domain-smoke-configured',
-  'rollback-runbook-validated',
-  'runtime-shell-identity',
-  'stale-service-worker-recovery',
-  'cache-bypass-navigation',
-  'browser-repair-flow',
-  'scheduled-production-drift-watch',
-  'screen-reader-evidence-template',
+  'complete-lesson-quiz-coverage','form-label-and-aria-reference-smoke','learner-mistake-recovery-parent-journey','xp-anti-farming-regression','compiled-shell-offline-recovery','offline-trust-resource-recovery','pwa-root-deployment-contract','service-worker-cache-safety','metadata-and-discoverability-contract','tracking-free-public-shell','search-query-deep-link-contract','crawler-indexing-boundary','deployment-metadata-integrity','live-custom-domain-smoke-configured','rollback-runbook-validated','runtime-shell-identity','stale-service-worker-recovery','cache-bypass-navigation','browser-repair-flow','scheduled-production-drift-watch','screen-reader-evidence-template',
 ]) check(status.qualityGates.includes(gate), `Release status records quality gate: ${gate}`)
 check(Array.isArray(status.remainingGates) && status.remainingGates.length === 1, 'Release status lists only the remaining manual accessibility gate')
 check(status.remainingGates[0] === 'assistive-technology-review', 'Release status retains the physical assistive-technology review')
@@ -73,42 +53,21 @@ check(!status.remainingGates.includes('controlled-production-deployment'), 'Comp
 check(!status.remainingGates.includes('live-post-deployment-verification'), 'Completed live verification is no longer marked pending')
 check(!status.remainingGates.includes('rollback-readiness-verification'), 'Completed rollback-readiness verification is no longer marked pending')
 
-const requiredScripts = ['validate:content', 'validate:experience', 'validate:trust', 'validate:data', 'validate:a11y', 'validate:web', 'validate:release', 'validate:pwa', 'validate:ops', 'validate:entry', 'validate:runtime', 'validate:dist', 'test:browser', 'test:live']
+const requiredScripts = ['validate:content','validate:experience','validate:trust','validate:data','validate:a11y','validate:web','validate:release','validate:pwa','validate:ops','validate:entry','validate:runtime','validate:dist','test:browser','test:live']
 for (const script of requiredScripts) check(Boolean(packageJson.scripts?.[script]), `Package script registered: ${script}`)
 
-const requiredRoutes = ['/today', '/practice', '/bookmarks', '/progress-report', '/weekly-review', '/family-goals', '/wellbeing', '/help', '/platform-health', '/teacher-resources']
+const requiredRoutes = ['/today','/practice','/bookmarks','/progress-report','/weekly-review','/family-goals','/wellbeing','/help','/platform-health','/teacher-resources']
 for (const route of requiredRoutes) check(app.includes(`path="${route}"`), `Application route registered: ${route}`)
 
-const personalisedRoutes = ['/today', '/practice', '/mistake-review', '/study-planner', '/activity', '/learning-notes', '/bookmarks', '/progress-report', '/weekly-review', '/family-goals', '/wellbeing', '/platform-health', '/dashboard', '/parent-dashboard', '/teacher-dashboard', '/profile', '/settings', '/onboarding', '/achievements', '/leaderboards']
+const personalisedRoutes = ['/today','/practice','/mistake-review','/study-planner','/activity','/learning-notes','/bookmarks','/progress-report','/weekly-review','/family-goals','/wellbeing','/platform-health','/dashboard','/parent-dashboard','/teacher-dashboard','/profile','/settings','/onboarding','/achievements','/leaderboards']
 for (const route of personalisedRoutes) check(robots.includes(`Disallow: ${route}`), `Personalised route excluded from indexing: ${route}`)
 
-for (const publicPath of ['/teacher-resources', '/help', '/child-privacy.html', '/accessibility.html', '/data-retention.html', '/grievance.html']) {
-  check(sitemap.includes(publicPath), `Public trust/support resource discoverable: ${publicPath}`)
-}
+for (const publicPath of ['/teacher-resources','/help','/child-privacy.html','/accessibility.html','/data-retention.html','/grievance.html']) check(sitemap.includes(publicPath), `Public trust/support resource discoverable: ${publicPath}`)
 
-const requiredPublicFiles = [
-  'public/manifest.webmanifest',
-  'public/sw.js',
-  'public/offline.html',
-  'public/reset-site.html',
-  'public/opensearch.xml',
-  'public/.well-known/security.txt',
-  'public/security.txt',
-  'public/child-privacy.html',
-  'public/accessibility.html',
-  'public/data-retention.html',
-  'public/grievance.html',
-  'public/release-status.json',
-]
+const requiredPublicFiles = ['public/manifest.webmanifest','public/sw.js','public/offline.html','public/reset-site.html','public/opensearch.xml','public/.well-known/security.txt','public/security.txt','public/child-privacy.html','public/accessibility.html','public/data-retention.html','public/grievance.html','public/release-status.json']
 for (const file of requiredPublicFiles) check(exists(file), `Required release file exists: ${file}`)
-
-for (const file of ['src/content/supplementalQuizzes.ts', 'src/content/registerSupplementalQuizzes.ts']) {
-  check(exists(file), `Required quiz-coverage source exists: ${file}`)
-}
-
-for (const file of ['scripts/live-site-smoke.mjs', 'scripts/validate-release-operations.mjs', 'scripts/validate-runtime-recovery.mjs', '.github/workflows/production-drift-watch.yml', 'docs/KVS_PLATFORM_001_RELEASE_OPERATIONS_RUNBOOK.md', 'docs/KVS_SCREEN_READER_REVIEW_CHECKLIST.md', 'docs/KVS_ROLLBACK_RUNBOOK.md']) {
-  check(exists(file), `Required release-operations file exists: ${file}`)
-}
+for (const file of ['src/content/supplementalQuizzes.ts','src/content/registerSupplementalQuizzes.ts']) check(exists(file), `Required quiz-coverage source exists: ${file}`)
+for (const file of ['scripts/live-site-smoke.mjs','scripts/validate-release-operations.mjs','scripts/validate-runtime-recovery.mjs','.github/workflows/production-drift-watch.yml','docs/KVS_PLATFORM_001_RELEASE_OPERATIONS_RUNBOOK.md','docs/KVS_SCREEN_READER_REVIEW_CHECKLIST.md','docs/KVS_ROLLBACK_RUNBOOK.md']) check(exists(file), `Required release-operations file exists: ${file}`)
 
 check(contentValidator.includes('lessonsWithoutQuiz.length === 0'), 'Content validation blocks any published lesson without a quiz')
 check(contentValidator.includes('artifacts') && contentValidator.includes('content-coverage'), 'Content validation publishes coverage evidence')
