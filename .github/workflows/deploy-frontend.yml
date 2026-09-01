@@ -1,0 +1,33 @@
+name: Donor web-quality contract
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-web-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run donor web-quality contract
+        shell: bash
+        run: pnpm run validate:web 2>&1 | tee web-quality.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-quality-log
+          path: web-quality.log
+          if-no-files-found: warn
