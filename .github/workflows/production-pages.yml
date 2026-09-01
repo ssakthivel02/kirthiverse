@@ -51,6 +51,7 @@ jobs:
                   text = text.replace(old, new)
               if text != original:
                   path.write_text(text, encoding='utf-8')
+          Path('dist/CNAME').write_text('kirthiverse.omsaravanabhava.org\n', encoding='utf-8')
           PY
       - name: Production identity and route gate
         shell: bash
@@ -58,12 +59,10 @@ jobs:
           set -euo pipefail
           test -s dist/index.html
           test -s dist/404.html
+          test "$(tr -d '\r\n ' < dist/CNAME)" = "kirthiverse.omsaravanabhava.org"
           grep -RIl 'KirthiVerse' dist | head -n 1 >/dev/null
           ! grep -RIl 'arivukids.omsaravanabhava.org' dist | grep -q .
           ! grep -RIl 'ArivuKids' dist | grep -q .
-          for route in learning-worlds ai-tutor parent-dashboard privacy terms safety; do
-            test -s "dist/${route}.html" || test -d "dist/${route}" || true
-          done
       - name: Configure Pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
