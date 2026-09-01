@@ -1,0 +1,26 @@
+{
+  "name": "ArivuKids Learning Universe",
+  "short_name": "ArivuKids",
+  "description": "A premium local-first learning universe for learners, parents and teachers.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#071124",
+  "theme_color": "#312e81",
+  "orientation": "any",
+  "categories": ["education", "kids", "productivity"],
+  "lang": "en-GB",
+  "icons": [
+    {
+      "src": "/icons/kirthiverse-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Today’s Mission", "url": "/today", "icons": [{ "src": "/icons/kirthiverse-icon.svg", "sizes": "any", "type": "image/svg+xml" }] },
+    { "name": "Learning Worlds", "url": "/learning-worlds", "icons": [{ "src": "/icons/kirthiverse-icon.svg", "sizes": "any", "type": "image/svg+xml" }] },
+    { "name": "Learner Dashboard", "url": "/dashboard", "icons": [{ "src": "/icons/kirthiverse-icon.svg", "sizes": "any", "type": "image/svg+xml" }] }
+  ]
+}

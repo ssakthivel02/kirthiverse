@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#312e81" />
+    <meta name="kvs-release-shell" content="KVS-PLATFORM-001" />
+    <title>Repair KirthiVerse in this browser</title>
+    <style>
+      :root{color-scheme:dark}*{box-sizing:border-box}body{min-height:100vh;margin:0;display:grid;place-items:center;padding:24px;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 20% 15%,rgba(99,102,241,.45),transparent 34%),linear-gradient(145deg,#070b22,#151345 55%,#07152b);color:#eef2ff}.card{width:min(720px,100%);padding:32px;border:1px solid rgba(255,255,255,.18);border-radius:26px;background:rgba(10,14,45,.75);box-shadow:0 24px 70px rgba(0,0,0,.35)}h1{margin:0 0 14px;font-size:clamp(30px,6vw,48px);line-height:1.05}p{color:#c7d2fe;line-height:1.7}.status{padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.08);font-weight:700}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}a,button{display:inline-flex;align-items:center;justify-content:center;padding:13px 17px;border:1px solid rgba(255,255,255,.2);border-radius:13px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-weight:800;text-decoration:none;cursor:pointer}.primary{background:linear-gradient(135deg,#6366f1,#7c3aed)}:focus-visible{outline:3px solid #67e8f9;outline-offset:3px}
+    </style>
+  </head>
+  <body>
+    <main class="card" aria-labelledby="repair-title">
+      <p>Local browser recovery</p>
+      <h1 id="repair-title">Repair KirthiVerse in this browser</h1>
+      <p>This removes only old KirthiVerse service-worker caches and registrations. Your learner profile, lesson progress, quiz attempts, bookmarks and family settings stored in local storage are not deleted.</p>
+      <p id="repair-status" class="status" role="status" aria-live="polite">Ready to repair.</p>
+      <div class="actions">
+        <button id="repair-button" class="primary" type="button">Repair and reopen KirthiVerse</button>
+        <a href="/">Return without repair</a>
+      </div>
+      <noscript>JavaScript is required for the automated repair. Use a private browser window or clear site data for kirthiverse.omsaravanabhava.org, then reopen the homepage.</noscript>
+    </main>
+    <script>
+      (function () {
+        var button = document.getElementById('repair-button');
+        var status = document.getElementById('repair-status');
+
+        async function repair() {
+          button.disabled = true;
+          status.textContent = 'Removing old KirthiVerse offline workers and caches…';
+
+          try {
+            if ('serviceWorker' in navigator) {
+              var registrations = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(registrations.map(function (registration) {
+                return registration.unregister();
+              }));
+            }
+
+            if ('caches' in window) {
+              var cacheNames = await caches.keys();
+              await Promise.all(cacheNames
+                .filter(function (cacheName) { return cacheName.indexOf('kirthiverse-') === 0; })
+                .map(function (cacheName) { return caches.delete(cacheName); }));
+            }
+
+            status.textContent = 'Repair complete. Reopening the current production release…';
+            window.setTimeout(function () {
+              window.location.replace('/?kvs-recovered=' + Date.now());
+            }, 600);
+          } catch (error) {
+            console.error('[KirthiVerse] Browser repair failed.', error);
+            status.textContent = 'Automatic repair could not finish. Open a private browser window and try the homepage there.';
+            button.disabled = false;
+          }
+        }
+
+        button.addEventListener('click', repair);
+      }());
+    </script>
+  </body>
+</html>

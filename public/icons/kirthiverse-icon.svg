@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">KirthiVerse</title>
+  <desc id="desc">A learning rocket crossing a colourful knowledge universe</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071124"/><stop offset=".55" stop-color="#312e81"/><stop offset="1" stop-color="#0e7490"/></linearGradient>
+    <linearGradient id="rocket" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6ee7b7"/><stop offset=".5" stop-color="#67e8f9"/><stop offset="1" stop-color="#c4b5fd"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <circle cx="118" cy="112" r="13" fill="#fde68a"/><circle cx="391" cy="119" r="9" fill="#c4b5fd"/><circle cx="414" cy="345" r="15" fill="#67e8f9"/><circle cx="102" cy="379" r="8" fill="#6ee7b7"/>
+  <path d="M155 338c-18 14-36 34-45 58 29-4 53-15 72-33" fill="#f97316"/>
+  <path d="M214 323c-11 31-9 61 0 90 24-17 40-40 48-67" fill="#8b5cf6"/>
+  <path d="M176 336c31 22 68 30 104 24 63-10 116-61 132-145-84-12-155 17-193 70-20 28-33 53-43 51Z" fill="url(#rocket)" stroke="#fff" stroke-width="13" stroke-linejoin="round"/>
+  <circle cx="321" cy="242" r="46" fill="#071124" stroke="#fff" stroke-width="12"/><circle cx="321" cy="242" r="25" fill="#67e8f9"/>
+  <path d="M183 312 128 276l18-48 91 19" fill="#22c55e" stroke="#fff" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M235 359 207 431l-49-7-6-92" fill="#a855f7" stroke="#fff" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M250 147c12-29 42-48 72-48" fill="none" stroke="#fde68a" stroke-width="10" stroke-linecap="round"/>
+</svg>

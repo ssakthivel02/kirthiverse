@@ -1,0 +1,47 @@
+name: Import ArivuKids donor parity
+
+on:
+  push:
+    branches: [integration/arivukids-parity]
+    paths: [.github/workflows/import-arivukids-parity.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: integration/arivukids-parity
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          repository: ssakthivel02/arivukids-legacy
+          ref: 8dcdd3a9e4e36c2723da17ec9b93af70569acdea
+          path: .donor
+          persist-credentials: false
+      - name: Import validated learning feature/content parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='CNAME' \
+            --exclude='README.md' \
+            --exclude='.donor/' \
+            .donor/ ./
+          rm -rf .donor
+          printf '%s\n' '8dcdd3a9e4e36c2723da17ec9b93af70569acdea' > ARIVUKIDS_DONOR_COMMIT.txt
+      - name: Commit parity snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Import validated ArivuKids feature and content parity snapshot'
+          git push origin HEAD:integration/arivukids-parity
