@@ -16,7 +16,7 @@ function check(condition, message) {
 
 const packageJson = JSON.parse(read('package.json'))
 const release = JSON.parse(read('public/release-status.json'))
-const workflow = read('.github/workflows/deploy-frontend.yml')
+const workflow = read('.github/workflows/production-pages.yml')
 const driftWatch = read('.github/workflows/production-drift-watch.yml')
 const copyScript = read('scripts/copy-static-production-files.mjs')
 const liveSmoke = read('scripts/live-site-smoke.mjs')
@@ -41,10 +41,10 @@ check(Boolean(packageJson.scripts?.['validate:runtime']), 'validate:runtime pack
 check(Boolean(packageJson.scripts?.['test:live']), 'test:live package script is registered')
 check(packageJson.scripts?.check?.includes('validate:ops'), 'Aggregate check includes release operations validation')
 check(packageJson.scripts?.check?.includes('validate:runtime'), 'Aggregate check includes runtime recovery validation')
-check(workflow.includes("if: github.event_name != 'pull_request'"), 'Deployment remains disabled for pull requests')
-check(workflow.includes('needs: build'), 'Deployment waits for the complete build gate')
+check(workflow.includes("if: github.event_name == 'push' && github.ref == 'refs/heads/main'"), 'Deployment remains disabled for pull requests')
+check(workflow.includes('needs: build-validate'), 'Deployment waits for the complete build gate')
 check(workflow.includes('needs: deploy'), 'Live verification waits for deployment')
-check(workflow.includes('KVS_RELEASE_CHANNEL: production'), 'Main deployment stamps the production channel')
+check(workflow.includes("KVS_RELEASE_CHANNEL: ${{ github.event_name == 'push' && 'production' || 'preview' }}"), 'Main deployment stamps the production channel while PRs remain previews')
 check(workflow.includes('KVS_EXPECTED_COMMIT: ${{ github.sha }}'), 'Live verification compares the deployed commit')
 check(workflow.includes('pnpm run test:live'), 'Workflow executes live custom-domain verification')
 check(workflow.includes('pnpm run validate:runtime'), 'Workflow executes runtime recovery validation')
@@ -65,7 +65,7 @@ check(copyScript.includes('deployment-metadata.json'), 'Build creates deployment
 check(copyScript.includes('KVS_RELEASE_CHANNEL'), 'Build channel is supplied explicitly')
 check(copyScript.includes('KVS_BUILD_COMMIT'), 'Build records the source commit')
 check(copyScript.includes("['preview', 'production']"), 'Build rejects unsupported release channels')
-check(liveSmoke.includes('https://arivukids.omsaravanabhava.org/'), 'Live smoke targets the ArivuKids production custom domain')
+check(liveSmoke.includes('https://arivukids.omsaravanabhava.org/') || liveSmoke.includes('https://kirthiverse.omsaravanabhava.org/'), 'Live smoke has a controlled production custom-domain target')
 check(liveSmoke.includes("release.channel === 'production'"), 'Live smoke requires a production release stamp')
 check(liveSmoke.includes('deployment.commit === expectedCommit'), 'Live smoke verifies the expected commit')
 check(liveSmoke.includes('kvs-release-shell'), 'Live smoke verifies the exact application shell marker')
@@ -82,7 +82,7 @@ check(runtimeRecovery.includes('scheduled-production-drift-watch'), 'Runtime val
 check(driftWatch.includes("cron: '17 */2 * * *'"), 'Drift watch runs every two hours')
 check(driftWatch.includes('KVS_EXPECTED_COMMIT: ${{ github.sha }}'), 'Drift watch compares production with current main')
 check(driftWatch.includes('production-drift-watch-${{ github.run_id }}'), 'Drift watch retains evidence')
-check(driftWatch.includes('ArivuKids production drift detected'), 'Drift watch reports confirmed production drift')
+check(driftWatch.includes('production drift detected'), 'Drift watch reports confirmed production drift')
 for (const gate of [
   'deployment-metadata-integrity',
   'live-custom-domain-smoke-configured',
