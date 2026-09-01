@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+Disallow: /today
+Disallow: /practice
+Disallow: /mistake-review
+Disallow: /study-planner
+Disallow: /activity
+Disallow: /learning-notes
+Disallow: /bookmarks
+Disallow: /progress-report
+Disallow: /weekly-review
+Disallow: /family-goals
+Disallow: /wellbeing
+Disallow: /platform-health
+Disallow: /dashboard
+Disallow: /parent-dashboard
+Disallow: /teacher-dashboard
+Disallow: /profile
+Disallow: /settings
+Disallow: /onboarding
+Disallow: /achievements
+Disallow: /leaderboards
+
+Sitemap: https://arivukids.omsaravanabhava.org/sitemap.xml

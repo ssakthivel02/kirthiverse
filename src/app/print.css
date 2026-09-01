@@ -1,0 +1,11 @@
+@media print {
+  @page { margin: 14mm; }
+  html { background: #fff !important; font-size: 12pt !important; }
+  body { background: #fff !important; color: #111827 !important; }
+  header, footer, button, [role="status"], nav[aria-label="Lesson sequence"], .print-hidden { display: none !important; }
+  main, section, article, aside, div { box-shadow: none !important; }
+  main { min-height: auto !important; }
+  a { color: inherit !important; text-decoration: none !important; }
+  section, article { break-inside: avoid; }
+  .container { max-width: none !important; padding-left: 0 !important; padding-right: 0 !important; }
+}
