@@ -84,7 +84,7 @@ function stampDeploymentMetadata() {
     runId,
     sourceRef,
     builtAt,
-    customDomain: 'https://arivukids.omsaravanabhava.org/',
+    customDomain: 'https://kirthiverse.omsaravanabhava.org/',
     localFirst: releaseStatus.localFirst === true,
     cloudChildProfiles: releaseStatus.cloudChildProfiles === true,
     schoolRosters: releaseStatus.schoolRosters === true,
