@@ -1,0 +1,226 @@
+name: KirthiVerse production candidate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kirthiverse-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Setup Chrome for browser QA
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v2
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Validate learning content
+        run: pnpm run validate:content
+      - name: Validate product experiences
+        run: pnpm run validate:experience
+      - name: Validate privacy and trust controls
+        run: pnpm run validate:trust
+      - name: Validate local data lifecycle
+        run: pnpm run validate:data
+      - name: Validate accessibility semantics
+        run: pnpm run validate:a11y
+      - name: Validate web metadata and discoverability
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm run validate:web 2>&1 | tee web-quality.log
+      - name: Validate release readiness
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm run validate:release 2>&1 | tee release-readiness.log
+      - name: Validate PWA deployment contract
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm run validate:pwa 2>&1 | tee pwa-contract.log
+      - name: Validate release operations and rollback readiness
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm run validate:ops 2>&1 | tee release-operations.log
+      - name: Validate legacy entry and preview recovery
+        run: pnpm run validate:entry
+      - name: Validate runtime cache and stale-shell recovery
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm run validate:runtime 2>&1 | tee runtime-recovery.log
+      - name: Type check
+        run: pnpm run type-check
+      - name: Lint
+        run: pnpm run lint
+      - name: Build candidate artifact
+        env:
+          KVS_RELEASE_CHANNEL: ${{ github.event_name == 'push' && 'production' || 'preview' }}
+          KVS_BUILD_COMMIT: ${{ github.sha }}
+          KVS_BUILD_RUN_ID: ${{ github.run_id }}
+          KVS_SOURCE_REF: ${{ github.ref_name }}
+        run: pnpm run build
+      - name: Validate built artifact
+        run: pnpm run validate:dist
+      - name: Run real-browser and offline quality suite
+        env:
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+        run: pnpm run test:browser
+      - name: Upload validation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kirthiverse-validation-${{ github.run_id }}
+          path: |
+            web-quality.log
+            release-readiness.log
+            pwa-contract.log
+            release-operations.log
+            runtime-recovery.log
+            artifacts/content-coverage
+          if-no-files-found: ignore
+          include-hidden-files: true
+          retention-days: 14
+      - name: Upload browser QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-smoke-${{ github.run_id }}
+          path: artifacts/browser-smoke
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 14
+      - name: Apply production KirthiVerse identity to built artifact
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          replacements = {
+              'https://arivukids.omsaravanabhava.org': 'https://kirthiverse.omsaravanabhava.org',
+              'ArivuKids Learning Universe': 'KirthiVerse Learning Universe',
+              'ArivuKids': 'KirthiVerse',
+          }
+          for path in Path('dist').rglob('*'):
+              if not path.is_file() or path.suffix.lower() not in {'.html','.js','.css','.json','.xml','.txt','.webmanifest'}:
+                  continue
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  continue
+              original = text
+              for old, new in replacements.items():
+                  text = text.replace(old, new)
+              if text != original:
+                  path.write_text(text, encoding='utf-8')
+          Path('dist/CNAME').write_text('kirthiverse.omsaravanabhava.org\n', encoding='utf-8')
+          PY
+      - name: Production identity gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/index.html
+          test -s dist/404.html
+          test "$(tr -d '\r\n ' < dist/CNAME)" = "kirthiverse.omsaravanabhava.org"
+          grep -RIl 'KirthiVerse' dist | head -n 1 >/dev/null
+          ! grep -RIl 'arivukids.omsaravanabhava.org' dist | grep -q .
+          ! grep -RIl 'ArivuKids' dist | grep -q .
+      - name: Package GitHub Pages artifact with hidden trust resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          touch dist/.nojekyll
+          test -f dist/.well-known/security.txt
+          test -f dist/.nojekyll
+          test -f dist/security.txt
+          cmp --silent dist/.well-known/security.txt dist/security.txt
+          tar --dereference --hard-dereference --directory dist -cvf "${{ runner.temp }}/artifact.tar" .
+          tar -tf "${{ runner.temp }}/artifact.tar" | grep -Fx './.well-known/security.txt'
+          tar -tf "${{ runner.temp }}/artifact.tar" | grep -Fx './.nojekyll'
+      - name: Configure GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v5
+      - name: Upload expected github-pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-validate
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy KirthiVerse
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  live-verify:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout verification scripts
+        uses: actions/checkout@v6
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Verify live custom domain and deployed commit
+        env:
+          KVS_LIVE_URL: https://kirthiverse.omsaravanabhava.org/
+          KVS_EXPECTED_COMMIT: ${{ github.sha }}
+          KVS_MAX_ATTEMPTS: 12
+          KVS_RETRY_MS: '10000'
+          KVS_REQUEST_TIMEOUT_MS: '15000'
+        run: pnpm run test:live
+      - name: Upload live verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-site-smoke-${{ github.run_id }}
+          path: artifacts/live-site-smoke
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30
