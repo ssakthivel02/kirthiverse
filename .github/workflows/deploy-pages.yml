@@ -25,24 +25,31 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+
+      - name: Enable pnpm
+        run: corepack enable
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Validate source
         run: |
-          npm run type-check
-          npm run lint
+          pnpm run type-check
+          pnpm run lint
 
       - name: Build production site
-        run: npm run build
+        run: pnpm run build
 
-      - name: Remove development-only artifacts
+      - name: Production output guard
         run: |
           rm -rf dist/__manus__ dist/.manus-logs
           if grep -RniE 'manus-analytics|debug-collector|__MANUS_HOST_DEV__' dist; then
             echo 'Development/Manus runtime artifact detected in production output.'
+            exit 1
+          fi
+          test -f dist/index.html
+          if grep -q '/src/main.tsx' dist/index.html; then
+            echo 'Uncompiled TSX entry detected in production output.'
             exit 1
           fi
 
