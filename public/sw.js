@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kirthiverse-shell-v4-runtime-20260729'
+const CACHE_NAME = 'kirthiverse-shell-v5-kvs-b39-seed-20260906'
 const COMPILED_ASSET_PREFIX = '/assets/'
 const CONNECTIVITY_ENDPOINT = '/__kvs_connectivity__'
 const RELEASE_MARKER = 'name="kvs-release-shell" content="KVS-PLATFORM-001"'
