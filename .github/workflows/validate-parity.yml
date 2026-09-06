@@ -39,7 +39,8 @@ jobs:
           test -s package.json
           test -s ARIVUKIDS_DONOR_COMMIT.txt
           test "$(tr -d '\r\n ' < ARIVUKIDS_DONOR_COMMIT.txt)" = "8dcdd3a9e4e36c2723da17ec9b93af70569acdea"
-          ! test -e CNAME
+          test -s CNAME
+          test "$(tr -d '\r\n ' < CNAME)" = "kirthiverse.omsaravanabhava.org"
           html_count=$(find . -maxdepth 2 -type f -name '*.html' | wc -l)
           test "$html_count" -ge 20
           echo "Validated HTML pages: $html_count"
