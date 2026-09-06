@@ -34,6 +34,7 @@ jobs:
 
       - name: Validate source
         run: |
+          pnpm run validate:kvs-supplement
           pnpm run type-check
           pnpm run lint
 
