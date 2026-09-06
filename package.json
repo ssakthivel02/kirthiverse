@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build && node scripts/copy-static-production-files.mjs",
     "validate:content": "node scripts/validate-content.mjs",
+    "validate:kvs-supplement": "node scripts/validate-kvs-production-supplement.mjs",
     "validate:experience": "node scripts/validate-experience.mjs",
     "validate:trust": "node scripts/validate-trust.mjs",
     "validate:data": "node scripts/validate-data-lifecycle.mjs",
@@ -25,7 +26,7 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx",
-    "check": "pnpm run validate:content && pnpm run validate:experience && pnpm run validate:trust && pnpm run validate:data && pnpm run validate:a11y && pnpm run validate:web && pnpm run validate:release && pnpm run validate:pwa && pnpm run validate:ops && pnpm run validate:entry && pnpm run validate:runtime && pnpm run type-check && pnpm run lint && pnpm run build && pnpm run validate:dist",
+    "check": "pnpm run validate:content && pnpm run validate:kvs-supplement && pnpm run validate:experience && pnpm run validate:trust && pnpm run validate:data && pnpm run validate:a11y && pnpm run validate:web && pnpm run validate:release && pnpm run validate:pwa && pnpm run validate:ops && pnpm run validate:entry && pnpm run validate:runtime && pnpm run type-check && pnpm run lint && pnpm run build && pnpm run validate:dist",
     "format": "prettier --write ."
   },
   "dependencies": {

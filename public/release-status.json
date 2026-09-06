@@ -1,17 +1,23 @@
 {
   "product": "KirthiVerse",
-  "release": "KVS-PLATFORM-001",
-  "channel": "preview",
-  "status": "runtime-recovery-source-candidate",
+  "release": "KVS-PLATFORM-001-B39-SEED",
+  "channel": "production",
+  "status": "production",
   "runtimeRecoveryReady": true,
   "localFirst": true,
   "cloudChildProfiles": false,
   "schoolRosters": false,
   "remoteTeacherMonitoring": false,
   "subjects": 10,
-  "lessons": 77,
-  "quizQuestions": 77,
+  "lessons": 89,
+  "quizQuestions": 125,
   "quizCoveragePercent": 100,
+  "kvsStagingBaseline": "KVS-STAGING-2026-09-B39",
+  "kvsStagingRecords": 1003,
+  "kvsProductionSeedLessons": 12,
+  "kvsProductionSeedQuestions": 48,
+  "kvsProductionSeedSourceBatches": ["B37", "B38"],
+  "kvsBlockedPendingSourceVerification": ["B39 science/biology"],
   "browserRouteChecks": 116,
   "automatedLearnerRecoveryJourney": true,
   "automatedOfflineRecovery": true,
@@ -21,6 +27,9 @@
   "productionDriftWatchHours": 2,
   "qualityGates": [
     "content-integrity",
+    "kvs-production-seed-integrity",
+    "four-question-density-for-kvs-seed",
+    "b39-source-verification-block",
     "complete-lesson-quiz-coverage",
     "product-experience",
     "privacy-and-trust",
@@ -58,6 +67,7 @@
     "distribution-integrity"
   ],
   "remainingGates": [
-    "assistive-technology-review"
+    "assistive-technology-review",
+    "authoritative-source-reconciliation-for-blocked-staging-content"
   ]
 }

@@ -1,0 +1,46 @@
+name: Validate KVS production seed
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate KVS production seed
+        run: pnpm run validate:kvs-supplement
+
+      - name: Type-check
+        run: pnpm run type-check
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Build production site
+        run: pnpm run build
+
+      - name: Guard production output
+        run: |
+          test -f dist/index.html
+          ! grep -q '/src/main.tsx' dist/index.html
+          ! grep -RniE 'manus-analytics|debug-collector|__MANUS_HOST_DEV__' dist
