@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './content/registerSupplementalQuizzes'
+import './content/registerKvsProductionSupplement'
 import App from './app/App'
 import './app/index.css'
 import './app/print.css'
