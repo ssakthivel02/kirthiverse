@@ -3,15 +3,17 @@ import { kvsTamilLessons, kvsTamilQuizzes } from './kvsProductionTamil'
 import { kvsEnglishLessons, kvsEnglishQuizzes } from './kvsProductionEnglish'
 import { kvsCodingLessons, kvsCodingQuizzes } from './kvsProductionCoding'
 import { kvsScienceLessons, kvsScienceQuizzes } from './kvsProductionScience'
+import { kvsFoundationLessons, kvsFoundationQuizzes } from './kvsProductionFoundations'
 
-// Production-safe tranche from KVS-STAGING-2026-09 B37-B39.
-// B39 science entered this bundle only after authoritative source reconciliation.
+// Controlled production-safe tranches from KVS-STAGING-2026-09.
+// B35 foundations and B39 science enter only after source/provenance reconciliation.
 export const kvsProductionLessons = [
   ...kvsMathLessons,
   ...kvsTamilLessons,
   ...kvsEnglishLessons,
   ...kvsCodingLessons,
   ...kvsScienceLessons,
+  ...kvsFoundationLessons,
 ]
 
 export const kvsProductionQuizzes = [
@@ -20,11 +22,12 @@ export const kvsProductionQuizzes = [
   ...kvsEnglishQuizzes,
   ...kvsCodingQuizzes,
   ...kvsScienceQuizzes,
+  ...kvsFoundationQuizzes,
 ]
 
 export const kvsProductionSeed = {
   baseline: 'KVS-STAGING-2026-09-B39-SOURCE-VERIFIED',
-  sourceBatches: ['B37', 'B38', 'B39'],
+  sourceBatches: ['B35', 'B37', 'B38', 'B39'],
   lessons: kvsProductionLessons.length,
   questions: kvsProductionQuizzes.length,
 } as const
