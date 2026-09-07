@@ -1,0 +1,59 @@
+name: Donor web-quality contract
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-web-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run donor web-quality contract
+        shell: bash
+        run: pnpm run validate:web 2>&1 | tee web-quality.log
+      - name: Run PWA deployment-contract gate
+        shell: bash
+        run: pnpm run validate:pwa 2>&1 | tee pwa-contract.log
+      - name: Build production candidate
+        run: pnpm run build
+      - name: Package GitHub Pages artifact with hidden trust resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          touch dist/.nojekyll
+          test -s dist/.well-known/security.txt
+          tar --dereference --hard-dereference --directory dist -cvf "${{ runner.temp }}/artifact.tar" .
+          tar -tf "${{ runner.temp }}/artifact.tar" | grep -Fx './.well-known/security.txt'
+          tar -tf "${{ runner.temp }}/artifact.tar" | grep -Fx './.nojekyll'
+      - name: Upload expected github-pages artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+      - name: Preserve web and PWA diagnostics
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-quality-log
+          path: |
+            web-quality.log
+            pwa-contract.log
+          if-no-files-found: warn
+          retention-days: 14

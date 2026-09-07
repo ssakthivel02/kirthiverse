@@ -1,0 +1,49 @@
+name: KirthiVerse Production Drift Watch
+
+on:
+  schedule:
+    - cron: '17 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kirthiverse-production-drift-watch
+  cancel-in-progress: true
+
+jobs:
+  verify-live-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      KVS_LIVE_URL: https://kirthiverse.omsaravanabhava.org/
+      KVS_EXPECTED_COMMIT: ${{ github.sha }}
+      KVS_MAX_ATTEMPTS: 3
+      KVS_RETRY_MS: '10000'
+      KVS_REQUEST_TIMEOUT_MS: '15000'
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v6
+      - name: Use Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify live KirthiVerse deployment
+        id: live_verify
+        continue-on-error: true
+        run: node scripts/live-site-smoke.mjs
+      - name: Retain production drift evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-drift-watch-${{ github.run_id }}
+          path: artifacts/live-site-smoke
+          if-no-files-found: error
+          retention-days: 14
+      - name: Report confirmed production drift
+        if: steps.live_verify.outcome == 'failure'
+        run: |
+          echo "::error::KirthiVerse production drift detected"
+          echo "Review retained evidence before changing DNS, Pages settings or certificates."
+          exit 1
