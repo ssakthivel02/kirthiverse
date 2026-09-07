@@ -6,7 +6,7 @@
   "description": "KirthiVerse - Premium Educational Platform",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/copy-static-production-files.mjs && node scripts/validate-bundle-budget.mjs",
+    "build": "node scripts/validate-public-identity.mjs && vite build && node scripts/copy-static-production-files.mjs && node scripts/validate-bundle-budget.mjs",
     "validate:content": "node scripts/validate-content.mjs",
     "validate:kvs-supplement": "node scripts/validate-kvs-production-supplement.mjs",
     "validate:experience": "node scripts/validate-experience.mjs",
@@ -19,6 +19,7 @@
     "validate:ops": "node scripts/validate-release-operations.mjs",
     "validate:entry": "node scripts/validate-entry-recovery.mjs",
     "validate:runtime": "node scripts/validate-runtime-recovery.mjs",
+    "validate:identity": "node scripts/validate-public-identity.mjs",
     "validate:dist": "node scripts/validate-dist.mjs",
     "validate:bundle": "node scripts/validate-bundle-budget.mjs",
     "package:preview": "node scripts/create-local-preview-package.mjs",
@@ -27,7 +28,7 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx",
-    "check": "pnpm run validate:content && pnpm run validate:kvs-supplement && pnpm run validate:experience && pnpm run validate:trust && pnpm run validate:data && pnpm run validate:a11y && pnpm run validate:web && pnpm run validate:release && pnpm run validate:pwa && pnpm run validate:ops && pnpm run validate:entry && pnpm run validate:runtime && pnpm run type-check && pnpm run lint && pnpm run build && pnpm run validate:dist",
+    "check": "pnpm run validate:content && pnpm run validate:kvs-supplement && pnpm run validate:experience && pnpm run validate:trust && pnpm run validate:data && pnpm run validate:a11y && pnpm run validate:web && pnpm run validate:release && pnpm run validate:pwa && pnpm run validate:ops && pnpm run validate:entry && pnpm run validate:runtime && pnpm run validate:identity && pnpm run type-check && pnpm run lint && pnpm run build && pnpm run validate:dist",
     "format": "prettier --write ."
   },
   "dependencies": {

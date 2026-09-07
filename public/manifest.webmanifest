@@ -1,7 +1,7 @@
 {
-  "name": "ArivuKids Learning Universe",
-  "short_name": "ArivuKids",
-  "description": "A premium local-first learning universe for learners, parents and teachers.",
+  "name": "KirthiVerse Learning Universe",
+  "short_name": "KirthiVerse",
+  "description": "A premium Tamil-first, local-first learning universe for learners, families and educators.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
