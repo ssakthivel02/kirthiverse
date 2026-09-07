@@ -53,7 +53,7 @@ export default function Search() {
         <div className="container py-14">
           <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan-300">Offline content search</p>
           <h1 className="mt-3 text-5xl font-black tracking-[-0.05em]">Find your next learning mission.</h1>
-          <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-200">Search all 77 lessons and 77 quiz questions without sending your query to a server or third party.</p>
+          <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-200">Search all {lessons.length} lessons and {quizzes.length} quiz questions without sending your query to a server or third party.</p>
           <label className="relative mt-8 block max-w-4xl">
             <SearchIcon className="pointer-events-none absolute left-5 top-1/2 h-6 w-6 -translate-y-1/2 text-slate-400" />
             <span className="sr-only">Search lessons and quizzes</span>
