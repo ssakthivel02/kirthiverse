@@ -170,6 +170,12 @@
   to { opacity: 1; transform: scale(1); }
 }
 
+/* Tailwind emerald-600 is too light for small text on pure white in the current palette.
+   Keep the semantic utility while strengthening white-surface contrast to WCAG AA. */
+.bg-white .text-emerald-600 {
+  color: #047857;
+}
+
 :root.reduce-motion *,
 :root.reduce-motion *::before,
 :root.reduce-motion *::after {
