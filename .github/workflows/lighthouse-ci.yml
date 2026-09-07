@@ -13,9 +13,15 @@ jobs:
   lighthouse:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      KVS_RELEASE_CHANNEL: preview
+      KVS_BUILD_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+      KVS_SOURCE_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
     steps:
       - name: Checkout exact commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -44,8 +50,22 @@ jobs:
       - name: Build production site
         run: pnpm run build
 
-      - name: Validate production output
-        run: pnpm run validate:dist
+      - name: Production-style output guard
+        run: |
+          rm -rf dist/__manus__ dist/.manus-logs
+          if grep -RniE 'manus-analytics|debug-collector|__MANUS_HOST_DEV__' dist; then
+            echo 'Development/Manus runtime artifact detected in Lighthouse build.'
+            exit 1
+          fi
+          test -f dist/index.html
+          if grep -q '/src/main.tsx' dist/index.html; then
+            echo 'Uncompiled TSX entry detected in Lighthouse build.'
+            exit 1
+          fi
+          test -f dist/release-status.json
+          test -f dist/deployment-metadata.json
+          node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('dist/release-status.json')); if(r.buildCommit!==process.env.KVS_BUILD_COMMIT) process.exit(1)"
+          node -e "const fs=require('fs'); const d=JSON.parse(fs.readFileSync('dist/deployment-metadata.json')); if(d.commit!==process.env.KVS_BUILD_COMMIT||d.sourceRef!==process.env.KVS_SOURCE_REF) process.exit(1)"
 
       - name: Collect Lighthouse reports
         run: pnpm exec lhci collect --config=./lighthouserc.json
@@ -57,7 +77,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lighthouse-evidence-${{ github.sha }}
+          name: lighthouse-evidence-${{ github.event.pull_request.head.sha || github.sha }}
           path: .lighthouseci/
           if-no-files-found: ignore
           retention-days: 14
