@@ -2,6 +2,8 @@ User-agent: *
 Allow: /
 Disallow: /today
 Disallow: /practice
+Disallow: /mastery
+Disallow: /family-bridge
 Disallow: /mistake-review
 Disallow: /study-planner
 Disallow: /activity
@@ -21,4 +23,4 @@ Disallow: /onboarding
 Disallow: /achievements
 Disallow: /leaderboards
 
-Sitemap: https://arivukids.omsaravanabhava.org/sitemap.xml
+Sitemap: https://kirthiverse.omsaravanabhava.org/sitemap.xml

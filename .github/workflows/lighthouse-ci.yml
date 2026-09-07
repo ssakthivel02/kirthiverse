@@ -1,0 +1,92 @@
+name: Lighthouse Quality
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      KVS_RELEASE_CHANNEL: preview
+      KVS_BUILD_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+      KVS_SOURCE_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install repository dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install pinned Lighthouse CI runner
+        run: pnpm add -Dw @lhci/cli@0.15.1 --lockfile=false
+
+      - name: TypeScript
+        run: pnpm run type-check
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Build production site
+        run: pnpm run build
+
+      - name: Production-style output guard
+        run: |
+          rm -rf dist/__manus__ dist/.manus-logs
+          if grep -RniE 'manus-analytics|debug-collector|__MANUS_HOST_DEV__' dist; then
+            echo 'Development/Manus runtime artifact detected in Lighthouse build.'
+            exit 1
+          fi
+          test -f dist/index.html
+          if grep -q '/src/main.tsx' dist/index.html; then
+            echo 'Uncompiled TSX entry detected in Lighthouse build.'
+            exit 1
+          fi
+          test -f dist/release-status.json
+          test -f dist/deployment-metadata.json
+          node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('dist/release-status.json')); if(r.buildCommit!==process.env.KVS_BUILD_COMMIT) process.exit(1)"
+          node -e "const fs=require('fs'); const d=JSON.parse(fs.readFileSync('dist/deployment-metadata.json')); if(d.commit!==process.env.KVS_BUILD_COMMIT||d.sourceRef!==process.env.KVS_SOURCE_REF) process.exit(1)"
+
+      - name: Audit public indexable routes
+        run: |
+          pnpm exec lhci collect --config=./lighthouserc.json
+          pnpm exec lhci assert --config=./lighthouserc.json
+          mv .lighthouseci .lighthouseci-public
+
+      - name: Audit private learner routes
+        run: |
+          pnpm exec lhci collect --config=./lighthouserc.private.json
+          pnpm exec lhci assert --config=./lighthouserc.private.json
+          mv .lighthouseci .lighthouseci-private
+
+      - name: Upload Lighthouse evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            .lighthouseci-public/
+            .lighthouseci-private/
+          if-no-files-found: ignore
+          include-hidden-files: true
+          retention-days: 14
