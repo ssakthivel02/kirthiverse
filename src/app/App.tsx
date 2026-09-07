@@ -24,6 +24,7 @@ import Search from '../pages/Search'
 import Profile from '../pages/Profile'
 import Settings from '../pages/Settings'
 import PracticeHub from '../pages/PracticeHub'
+import PracticeArena from '../pages/PracticeArena'
 import Bookmarks from '../pages/Bookmarks'
 import ProgressReport from '../pages/ProgressReport'
 import TeacherResources from '../pages/TeacherResources'
@@ -60,7 +61,8 @@ export default function App() {
               <Route path="/" component={Home} />
               <Route path="/onboarding" component={Onboarding} />
               <Route path="/today" component={Today} />
-              <Route path="/practice" component={PracticeHub} />
+              <Route path="/practice" component={PracticeArena} />
+              <Route path="/practice-hub" component={PracticeHub} />
               <Route path="/mistake-review" component={MistakeReview} />
               <Route path="/study-planner" component={StudyPlanner} />
               <Route path="/activity" component={ActivityTimeline} />
