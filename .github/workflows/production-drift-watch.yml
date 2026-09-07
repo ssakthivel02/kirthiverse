@@ -1,0 +1,44 @@
+name: KirthiVerse Production Drift Watch
+
+on:
+  schedule:
+    - cron: '17 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kirthiverse-production-drift-watch
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Verify production matches current main
+        env:
+          KVS_LIVE_URL: https://kirthiverse.omsaravanabhava.org/
+          KVS_EXPECTED_COMMIT: ${{ github.sha }}
+          KVS_MAX_ATTEMPTS: 3
+          KVS_RETRY_MS: 15000
+          KVS_REQUEST_TIMEOUT_MS: 15000
+        run: node scripts/live-site-smoke.mjs
+
+      - name: Upload drift evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: production-drift-watch-${{ github.run_id }}
+          path: artifacts/live-site-smoke
+          if-no-files-found: error
+          retention-days: 14
