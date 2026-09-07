@@ -109,21 +109,20 @@ export function getLessonMastery(): LessonMastery[] {
   })
 }
 
-export function getRecommendedMasteryItems(limit = 8) {
-  const priority: Record<LearnerMasteryState, number> = {
-    needs_practice: 100,
-    building: 70,
-    challenge_ready: 50,
-    secure: 20,
-  }
+function recommendationPriority(item: LessonMastery) {
+  if (item.state === 'needs_practice') return 100
+  if (item.state === 'building' && item.latestScore !== null) return 90
+  if (item.state === 'challenge_ready') return 80
+  if (item.state === 'secure' && !item.prerequisiteSecure) return 75
+  if (item.state === 'building' && !item.prerequisiteSecure) return 60
+  if (item.state === 'building') return 50
+  return 20
+}
 
+export function getRecommendedMasteryItems(limit = 8) {
   return getLessonMastery()
     .filter((item) => item.quizQuestions > 0)
-    .sort((a, b) => {
-      if (!a.prerequisiteSecure && b.prerequisiteSecure) return -1
-      if (a.prerequisiteSecure && !b.prerequisiteSecure) return 1
-      return priority[b.state] - priority[a.state] || a.lesson.subject.localeCompare(b.lesson.subject) || a.lesson.order - b.lesson.order
-    })
+    .sort((a, b) => recommendationPriority(b) - recommendationPriority(a) || a.lesson.subject.localeCompare(b.lesson.subject) || a.lesson.order - b.lesson.order)
     .slice(0, Math.max(1, limit))
 }
 
