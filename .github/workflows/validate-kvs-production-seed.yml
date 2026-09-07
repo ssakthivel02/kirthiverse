@@ -12,6 +12,10 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      KVS_RELEASE_CHANNEL: preview
+      KVS_BUILD_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+      KVS_SOURCE_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
     steps:
       - name: Checkout exact commit
         uses: actions/checkout@v7
@@ -37,3 +41,7 @@ jobs:
           test -f dist/index.html
           ! grep -q '/src/main.tsx' dist/index.html
           ! grep -RniE 'manus-analytics|debug-collector|__MANUS_HOST_DEV__' dist
+          test -f dist/release-status.json
+          test -f dist/deployment-metadata.json
+          node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('dist/release-status.json')); if(r.buildCommit!==process.env.KVS_BUILD_COMMIT) { console.error('release-status buildCommit mismatch', r.buildCommit, process.env.KVS_BUILD_COMMIT); process.exit(1) }"
+          node -e "const fs=require('fs'); const d=JSON.parse(fs.readFileSync('dist/deployment-metadata.json')); if(d.commit!==process.env.KVS_BUILD_COMMIT||d.sourceRef!==process.env.KVS_SOURCE_REF) { console.error('deployment metadata provenance mismatch', d.commit, d.sourceRef, process.env.KVS_BUILD_COMMIT, process.env.KVS_SOURCE_REF); process.exit(1) }"
