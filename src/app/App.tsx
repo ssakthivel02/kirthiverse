@@ -7,10 +7,10 @@ import RouteEffects from '../components/RouteEffects'
 import ConnectivityBanner from '../components/ConnectivityBanner'
 import AppUpdateNotice from '../components/AppUpdateNotice'
 import Home from '../pages/Home'
+import LearningWorlds from '../pages/LearningWorlds'
 import { storage } from '../utils/storage'
 
 const NotFound = lazy(() => import('../pages/NotFound'))
-const LearningWorlds = lazy(() => import('../pages/LearningWorlds'))
 const SubjectPage = lazy(() => import('../pages/SubjectPage'))
 const LessonPage = lazy(() => import('../pages/LessonPage'))
 const QuizPage = lazy(() => import('../pages/QuizPage'))
