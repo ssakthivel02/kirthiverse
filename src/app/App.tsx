@@ -8,6 +8,9 @@ import ConnectivityBanner from '../components/ConnectivityBanner'
 import AppUpdateNotice from '../components/AppUpdateNotice'
 import Home from '../pages/Home'
 import LearningWorlds from '../pages/LearningWorlds'
+import PracticeArena from '../pages/PracticeArena'
+import MasteryConstellation from '../pages/MasteryConstellation'
+import FamilyBridge from '../pages/FamilyBridge'
 import { storage } from '../utils/storage'
 
 const NotFound = lazy(() => import('../pages/NotFound'))
@@ -16,7 +19,6 @@ const LessonPage = lazy(() => import('../pages/LessonPage'))
 const QuizPage = lazy(() => import('../pages/QuizPage'))
 const StudentDashboard = lazy(() => import('../pages/StudentDashboard'))
 const ParentDashboard = lazy(() => import('../pages/ParentDashboard'))
-const FamilyBridge = lazy(() => import('../pages/FamilyBridge'))
 const Leaderboards = lazy(() => import('../pages/Leaderboards'))
 const GuidedTutor = lazy(() => import('../pages/GuidedTutor'))
 const Onboarding = lazy(() => import('../pages/Onboarding'))
@@ -27,8 +29,6 @@ const Search = lazy(() => import('../pages/Search'))
 const Profile = lazy(() => import('../pages/Profile'))
 const Settings = lazy(() => import('../pages/Settings'))
 const PracticeHub = lazy(() => import('../pages/PracticeHub'))
-const PracticeArena = lazy(() => import('../pages/PracticeArena'))
-const MasteryConstellation = lazy(() => import('../pages/MasteryConstellation'))
 const Bookmarks = lazy(() => import('../pages/Bookmarks'))
 const ProgressReport = lazy(() => import('../pages/ProgressReport'))
 const TeacherResources = lazy(() => import('../pages/TeacherResources'))
