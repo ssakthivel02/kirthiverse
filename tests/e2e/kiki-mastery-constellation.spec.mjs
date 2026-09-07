@@ -43,6 +43,23 @@ test.describe('Kiki Mastery Constellation', () => {
     await expect(page.getByText(/recent evidence is strong/i).first()).toBeVisible()
   })
 
+  test('requires every explicit prerequisite before challenge routing', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.clear()
+      localStorage.setItem('kvs_quiz_attempts', JSON.stringify([
+        { quizId: 'seed-math-005', lessonId: 'math-005', subject: 'Mathematics', score: 1, totalQuestions: 1, percentage: 90, attemptDate: 1000 },
+        { quizId: 'seed-math-006', lessonId: 'math-006', subject: 'Mathematics', score: 1, totalQuestions: 1, percentage: 95, attemptDate: 2000 },
+      ]))
+    })
+
+    await page.goto('/mastery')
+    const card = page.getByRole('heading', { name: 'Introduction to Division' }).locator('..').locator('..')
+    await expect(card.getByText(/prerequisite lessons still need evidence/i)).toBeVisible()
+    await expect(card.getByText(/Introduction to Multiplication — needs evidence first/)).toBeVisible()
+    await expect(card.getByText(/Multiplication Facts 6-10 — secure enough to continue/)).toBeVisible()
+    await expect(card.getByRole('button', { name: /Strengthen prerequisite/ })).toBeVisible()
+  })
+
   test('is local-first, refresh-safe and free from horizontal overflow', async ({ page }) => {
     const pageErrors = []
     page.on('pageerror', (error) => pageErrors.push(error.message))
