@@ -11,7 +11,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout exact commit
         uses: actions/checkout@v7
@@ -29,17 +29,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Validate KVS production seed
-        run: pnpm run validate:kvs-supplement
-
-      - name: Type-check
-        run: pnpm run type-check
-
-      - name: Lint
-        run: pnpm run lint
-
-      - name: Build production site
-        run: pnpm run build
+      - name: Run full release contract
+        run: pnpm run check
 
       - name: Guard production output
         run: |
