@@ -36,16 +36,26 @@ export default function MasteryConstellation() {
         </div>
 
         <section className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex items-start gap-4"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-violet-100 text-violet-800"><Compass className="h-6 w-6" /></span><div><p className="text-sm font-black uppercase tracking-[0.15em] text-violet-700">Explainable diagnostics</p><h2 className="mt-2 text-3xl font-black">Why Kiki picked this for you</h2><p className="mt-3 max-w-3xl leading-7 text-slate-600">No opaque AI score is used. The recommendation is derived from your latest quiz evidence, repeated low-score signals, lesson order and whether the immediately preceding step is secure.</p></div></div>
+          <div className="flex items-start gap-4"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-violet-100 text-violet-800"><Compass className="h-6 w-6" /></span><div><p className="text-sm font-black uppercase tracking-[0.15em] text-violet-700">Explainable diagnostics</p><h2 className="mt-2 text-3xl font-black">Why Kiki picked this for you</h2><p className="mt-3 max-w-3xl leading-7 text-slate-600">No opaque AI score is used. Recommendations come from quiz evidence, repeated low-score signals and explicit prerequisite relationships where the production curriculum has them. A same-subject sequence is used only as a fallback for lessons whose prerequisite metadata has not yet been promoted.</p></div></div>
 
           <div className="mt-8 grid gap-5">{recommendations.map((item, index) => {
             const copy = stateCopy[item.state]
-            const target = !item.prerequisiteSecure && item.prerequisite ? item.prerequisite : item.lesson
+            const firstUnsecured = item.prerequisites.find((candidate) => {
+              const progress = storage.getLessonProgress(candidate.id)
+              const attempt = storage.getQuizAttempts().filter((entry) => entry.lessonId === candidate.id).sort((a, b) => b.attemptDate - a.attemptDate)[0]
+              return !progress?.completed && (attempt?.percentage ?? 0) < 80
+            })
+            const target = !item.prerequisiteSecure ? (firstUnsecured ?? item.prerequisite ?? item.lesson) : item.lesson
             return <article key={item.lesson.id} className="rounded-[1.5rem] border border-slate-200 p-5 sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-950 text-xs font-black text-white">{index + 1}</span><span className={`rounded-full border px-3 py-1 text-xs font-black ${copy.className}`}>{copy.label}</span><span className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">{item.lesson.subject}</span></div><h3 className="mt-4 text-2xl font-black">{item.lesson.title}</h3><p className="mt-3 leading-7 text-slate-700">{tamil ? item.recommendationReasonTamil : item.recommendationReason}</p>
                   <div className="mt-4 flex flex-wrap gap-3 text-sm font-bold text-slate-500"><span>{item.latestScore === null ? 'No score yet' : `Latest ${item.latestScore}%`}</span><span>·</span><span>{item.attemptCount} attempt{item.attemptCount === 1 ? '' : 's'}</span><span>·</span><span>{item.quizQuestions} canonical question{item.quizQuestions === 1 ? '' : 's'}</span>{item.misconceptionSignal && <><span>·</span><span className="text-rose-700">Repeated difficulty signal</span></>}</div>
-                  {item.prerequisite && <p className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-700"><strong>Prerequisite check:</strong> {item.prerequisite.title} — {item.prerequisiteSecure ? 'secure enough to continue' : 'needs evidence first'}.</p>}
+                  {item.prerequisites.length > 0 && <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-700"><strong>Prerequisite path:</strong><ul className="mt-2 list-disc space-y-1 pl-5">{item.prerequisites.map((prerequisite) => {
+                    const progress = storage.getLessonProgress(prerequisite.id)
+                    const attempt = storage.getQuizAttempts().filter((entry) => entry.lessonId === prerequisite.id).sort((a, b) => b.attemptDate - a.attemptDate)[0]
+                    const secure = Boolean(progress?.completed) || (attempt?.percentage ?? 0) >= 80
+                    return <li key={prerequisite.id}>{prerequisite.title} — {secure ? 'secure enough to continue' : 'needs evidence first'}</li>
+                  })}</ul></div>}
                 </div>
                 <button type="button" onClick={() => navigate(`/lesson/${target.id}`)} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 font-black text-white">{!item.prerequisiteSecure ? 'Strengthen prerequisite' : item.nextAction === 'challenge' ? 'Take challenge' : item.nextAction === 'remediate' ? 'Review lesson' : 'Continue'} <ArrowRight className="h-4 w-4" /></button>
               </div>
