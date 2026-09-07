@@ -101,6 +101,7 @@ async function precacheShell() {
   const cache = await caches.open(CACHE_NAME)
   await cache.addAll(CORE_ASSETS)
   await writeConnectivityState(cache, false)
+
   const indexResponse = await fetchAndCache(cache, '/index.html')
   const html = await indexResponse.clone().text()
   if (!html.includes(RELEASE_MARKER)) throw new Error('Current release marker is missing from index.html')
@@ -120,8 +121,14 @@ async function notifyAllClients(message) {
   clients.forEach((client) => client.postMessage(message))
 }
 
-self.addEventListener('install', (event) => { event.waitUntil(precacheShell()) })
-self.addEventListener('message', (event) => { if (event.data?.type === 'SKIP_WAITING') self.skipWaiting() })
+self.addEventListener('install', (event) => {
+  event.waitUntil(precacheShell())
+})
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting()
+})
+
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
@@ -137,7 +144,9 @@ async function networkFirstNavigation(request, clientId) {
     if (isLocalOfflineAudit(request)) throw new Error('Local CI offline recovery audit')
     const response = await fetch(request, { cache: 'no-store' })
     if (!response.ok) throw new Error(`Navigation returned ${response.status}`)
-    if (requiresCurrentApplicationShell(request) && !(await isCurrentApplicationShell(response))) throw new Error('Navigation returned a stale or incomplete KirthiVerse application shell')
+    if (requiresCurrentApplicationShell(request) && !(await isCurrentApplicationShell(response))) {
+      throw new Error('Navigation returned a stale or incomplete KirthiVerse application shell')
+    }
     await cache.put(request, response.clone())
     await writeConnectivityState(cache, false)
     await notifyClient(clientId, { type: 'KVS_CONNECTION_AVAILABLE' })
@@ -154,9 +163,16 @@ async function staleWhileRevalidate(request, event) {
   const cache = await caches.open(CACHE_NAME)
   const cached = await cache.match(request)
   const refresh = fetch(request, { cache: 'no-store' })
-    .then(async (response) => { if (response.ok) await cache.put(request, response.clone()); return response })
+    .then(async (response) => {
+      if (response.ok) await cache.put(request, response.clone())
+      return response
+    })
     .catch(() => null)
-  if (cached) { event.waitUntil(refresh); return cached }
+
+  if (cached) {
+    event.waitUntil(refresh)
+    return cached
+  }
   return (await refresh) || Response.error()
 }
 
@@ -168,7 +184,9 @@ async function cacheFirstDocument(request) {
     const response = await fetch(request, { cache: 'no-store' })
     if (response.ok) await cache.put(request, response.clone())
     return response
-  } catch { return (await cache.match('/offline.html')) || Response.error() }
+  } catch {
+    return (await cache.match('/offline.html')) || Response.error()
+  }
 }
 
 self.addEventListener('fetch', (event) => {
@@ -176,8 +194,23 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return
   const url = new URL(request.url)
   if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return
-  if (url.pathname === CONNECTIVITY_ENDPOINT) { event.respondWith(readConnectivityState()); return }
-  if (request.mode === 'navigate') { event.respondWith(networkFirstNavigation(request, event.clientId)); return }
-  if (['style', 'script', 'font', 'image'].includes(request.destination)) { event.respondWith(staleWhileRevalidate(request, event)); return }
-  if (request.destination === 'document' || CORE_ASSETS.includes(url.pathname)) event.respondWith(cacheFirstDocument(request))
+
+  if (url.pathname === CONNECTIVITY_ENDPOINT) {
+    event.respondWith(readConnectivityState())
+    return
+  }
+
+  if (request.mode === 'navigate') {
+    event.respondWith(networkFirstNavigation(request, event.clientId))
+    return
+  }
+
+  if (['style', 'script', 'font', 'image'].includes(request.destination)) {
+    event.respondWith(staleWhileRevalidate(request, event))
+    return
+  }
+
+  if (request.destination === 'document' || CORE_ASSETS.includes(url.pathname)) {
+    event.respondWith(cacheFirstDocument(request))
+  }
 })
