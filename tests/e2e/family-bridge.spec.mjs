@@ -3,11 +3,12 @@ import { expect, test } from '@playwright/test'
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.clear()
-    localStorage.setItem('kirthiverse_preferences', JSON.stringify({
+    localStorage.setItem('kvs_preferences', JSON.stringify({
       language: 'English',
-      ageBand: '9-10',
-      learningLevel: 'Intermediate',
+      ageBand: '9-11',
+      learningLevel: 'Explorer',
       dailyGoal: 3,
+      favouriteSubjects: [],
       largerText: false,
       reducedMotion: false,
     }))
@@ -26,17 +27,19 @@ test('Family Bridge is local-first, explainable and directly refreshable', async
 
   await page.reload()
   await expect(page.getByText('Family Bridge · குடும்ப இணைப்பு')).toBeVisible()
-  await expect(page.locator('body')).not.toHaveCSS('overflow-x', 'scroll')
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)
+  expect(overflow).toBe(true)
   expect(pageErrors).toEqual([])
 })
 
 test('Family Bridge follows the saved Tamil preference', async ({ page }) => {
   await page.addInitScript(() => {
-    localStorage.setItem('kirthiverse_preferences', JSON.stringify({
+    localStorage.setItem('kvs_preferences', JSON.stringify({
       language: 'Tamil',
-      ageBand: '9-10',
-      learningLevel: 'Intermediate',
+      ageBand: '9-11',
+      learningLevel: 'Explorer',
       dailyGoal: 3,
+      favouriteSubjects: [],
       largerText: false,
       reducedMotion: false,
     }))
