@@ -1,0 +1,63 @@
+name: Lighthouse Quality
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install repository dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install pinned Lighthouse CI runner
+        run: pnpm add -Dw @lhci/cli@0.15.1 --lockfile=false
+
+      - name: TypeScript
+        run: pnpm run type-check
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Build production site
+        run: pnpm run build
+
+      - name: Validate production output
+        run: pnpm run validate:dist
+
+      - name: Collect Lighthouse reports
+        run: pnpm exec lhci collect --config=./lighthouserc.json
+
+      - name: Assert Lighthouse budgets
+        run: pnpm exec lhci assert --config=./lighthouserc.json
+
+      - name: Upload Lighthouse evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-evidence-${{ github.sha }}
+          path: .lighthouseci/
+          if-no-files-found: ignore
+          retention-days: 14
