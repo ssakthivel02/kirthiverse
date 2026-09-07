@@ -12,11 +12,11 @@ jobs:
   import:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: integration/arivukids-parity
           fetch-depth: 0
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: ssakthivel02/arivukids-legacy
           ref: 8dcdd3a9e4e36c2723da17ec9b93af70569acdea
