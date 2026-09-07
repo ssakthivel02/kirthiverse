@@ -1,4 +1,5 @@
 import { lessons, type Lesson } from '../content/lessons'
+import { getExplicitPrerequisites } from '../content/lessonPrerequisites'
 import { quizzes } from '../content/quizzes'
 import { storage, type QuizAttempt } from './storage'
 
@@ -10,6 +11,7 @@ export interface LessonMastery {
   latestScore: number | null
   attemptCount: number
   prerequisite: Lesson | null
+  prerequisites: Lesson[]
   prerequisiteSecure: boolean
   misconceptionSignal: boolean
   recommendationReason: string
@@ -31,12 +33,24 @@ function previousLesson(lesson: Lesson) {
     .sort((a, b) => b.order - a.order)[0] ?? null
 }
 
+function prerequisitesForLesson(lesson: Lesson) {
+  const explicit = getExplicitPrerequisites(lesson, lessons)
+  if (explicit.length) return explicit
+  const fallback = previousLesson(lesson)
+  return fallback ? [fallback] : []
+}
+
 function latestScore(attempts: QuizAttempt[]) {
   return attempts.length ? attempts[attempts.length - 1].percentage : null
 }
 
 function isSecure(score: number | null) {
   return score !== null && score >= 80
+}
+
+function prerequisiteIsSecure(prerequisite: Lesson, attempts: QuizAttempt[], progress: ReturnType<typeof storage.getLessonsProgress>) {
+  const latest = latestScore(attemptsForLesson(attempts, prerequisite.id))
+  return isSecure(latest) || Boolean(progress[prerequisite.id]?.completed)
 }
 
 export function getLessonMastery(): LessonMastery[] {
@@ -46,12 +60,13 @@ export function getLessonMastery(): LessonMastery[] {
   return lessons.map((lesson) => {
     const lessonAttempts = attemptsForLesson(attempts, lesson.id)
     const latest = latestScore(lessonAttempts)
-    const prerequisite = previousLesson(lesson)
-    const prerequisiteAttempts = prerequisite ? attemptsForLesson(attempts, prerequisite.id) : []
-    const prerequisiteLatest = latestScore(prerequisiteAttempts)
-    const prerequisiteSecure = !prerequisite || isSecure(prerequisiteLatest) || Boolean(progress[prerequisite.id]?.completed)
+    const prerequisites = prerequisitesForLesson(lesson)
+    const prerequisite = prerequisites[0] ?? null
+    const prerequisiteSecure = prerequisites.every((item) => prerequisiteIsSecure(item, attempts, progress))
     const recentScores = lessonAttempts.slice(-2).map((attempt) => attempt.percentage)
     const misconceptionSignal = recentScores.length >= 2 && recentScores.every((score) => score < 60)
+    const prerequisiteLabel = prerequisites.length > 1 ? 'prerequisite lessons' : 'prerequisite lesson'
+    const prerequisiteLabelTamil = prerequisites.length > 1 ? 'முன்தேவைப் பாடங்கள்' : 'முன்தேவைப் பாடம்'
 
     let state: LearnerMasteryState = 'building'
     let nextAction: LessonMastery['nextAction'] = 'continue'
@@ -82,15 +97,16 @@ export function getLessonMastery(): LessonMastery[] {
       nextAction = 'continue'
       recommendationReason = prerequisiteSecure
         ? 'Your latest evidence is secure, so Kiki can move you forward without unnecessary repetition.'
-        : 'Your score is secure, but the previous lesson still needs evidence before Kiki advances the pathway.'
+        : `Your score is secure, but the ${prerequisiteLabel} still need evidence before Kiki advances the pathway.`
       recommendationReasonTamil = prerequisiteSecure
         ? 'சமீபத்திய சான்று உறுதியானதால், தேவையற்ற மீளுரைப்பில்லாமல் கிகி அடுத்த படிக்கு நகர்த்துகிறது.'
-        : 'மதிப்பெண் உறுதியானது; ஆனால் பாதையை முன்னேற்ற முன்பட்ட பாடத்திற்கு இன்னும் சான்று தேவை.'
+        : `மதிப்பெண் உறுதியானது; ஆனால் பாதையை முன்னேற்ற ${prerequisiteLabelTamil} இன்னும் சான்று தேவை.`
     } else if (!prerequisiteSecure) {
       state = 'building'
       nextAction = 'practice'
-      recommendationReason = `Kiki picked the earlier ${lesson.subject} step first because this lesson builds on it.`
-      recommendationReasonTamil = `இந்தப் பாடம் முன்பட்ட ${lesson.subject} படியை அடிப்படையாகக் கொண்டதால், கிகி அதைப் முதலில் தேர்ந்தெடுத்தது.`
+      const names = prerequisites.map((item) => item.title).join(', ')
+      recommendationReason = `Kiki picked prerequisite learning first because this lesson builds on ${names}.`
+      recommendationReasonTamil = `இந்தப் பாடம் ${names} மீது கட்டமைக்கப்படுவதால், கிகி முதலில் முன்தேவை கற்றலைத் தேர்ந்தெடுத்தது.`
     }
 
     return {
@@ -99,6 +115,7 @@ export function getLessonMastery(): LessonMastery[] {
       latestScore: latest,
       attemptCount: lessonAttempts.length,
       prerequisite,
+      prerequisites,
       prerequisiteSecure,
       misconceptionSignal,
       recommendationReason,
