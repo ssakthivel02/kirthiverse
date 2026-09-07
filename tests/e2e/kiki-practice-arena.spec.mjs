@@ -14,7 +14,7 @@ test.describe('Kiki Practice Arena', () => {
     await page.addInitScript(() => localStorage.clear())
   })
 
-  test('runs a calm practice mission and persists a learner decision', async ({ page }) => {
+  test('runs a calm practice mission and persists learner evidence', async ({ page }) => {
     const errors = collectPageErrors(page)
     await page.goto('/practice')
 
@@ -24,18 +24,18 @@ test.describe('Kiki Practice Arena', () => {
     const threeMinutes = page.getByRole('button', { name: '3 min' })
     await threeMinutes.click()
     await expect(threeMinutes).toHaveAttribute('aria-pressed', 'true')
-
-    const calmMode = page.getByRole('checkbox')
-    await expect(calmMode).toBeChecked()
+    await expect(page.getByRole('checkbox')).toBeChecked()
 
     await page.getByRole('button', { name: /Start with Kiki/i }).click()
-    await expect(page.getByLabel(/minutes .* seconds remaining/i)).toBeVisible()
-
-    const optionButtons = page.locator('section').filter({ has: page.getByText(/answered/i) }).getByRole('button')
-    const answer = optionButtons.filter({ hasNotText: /Pause|End mission/i }).first()
-    await answer.click()
+    await expect(page.getByLabel('Calm Mode timer running')).toBeVisible()
+    await page.getByTestId('arena-option').first().click()
     await expect(page.getByRole('status')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Next question' })).toBeVisible()
+
+    const attempts = await page.evaluate(() => JSON.parse(localStorage.getItem('kvs_quiz_attempts') || '[]'))
+    expect(attempts).toHaveLength(1)
+    expect(attempts[0].quizId).toContain('kiki-arena:')
+    expect(attempts[0].totalQuestions).toBe(1)
 
     await page.getByRole('button', { name: 'Pause' }).click()
     await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible()
@@ -44,13 +44,20 @@ test.describe('Kiki Practice Arena', () => {
     await page.getByRole('button', { name: /End mission/i }).click()
     await expect(page.getByRole('heading', { name: /Mission complete/i })).toBeVisible()
     await page.getByRole('button', { name: 'Need more practice' }).click()
-    await expect(page.getByText(/Need more practice/).last()).toBeVisible()
+    await expect(page.getByRole('status')).toContainText('saved this practice reflection')
 
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('kvs_kiki_practice_history_v1') || '[]'))
-    expect(saved.length).toBeGreaterThan(0)
+    expect(saved).toHaveLength(1)
     expect(saved[0].durationMinutes).toBe(3)
     expect(saved[0].result).toBe('need_more_practice')
     expect(errors).toEqual([])
+  })
+
+  test('shows countdown outside Calm Mode', async ({ page }) => {
+    await page.goto('/practice')
+    await page.getByRole('checkbox').uncheck()
+    await page.getByRole('button', { name: /Start with Kiki/i }).click()
+    await expect(page.getByLabel(/minutes .* seconds remaining/i)).toBeVisible()
   })
 
   test('has no horizontal overflow at the active viewport', async ({ page }) => {
