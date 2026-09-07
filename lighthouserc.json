@@ -2,8 +2,8 @@
   "ci": {
     "collect": {
       "startServerCommand": "pnpm exec vite preview --host 127.0.0.1 --port 4173",
-      "startServerReadyPattern": "Local:",
-      "startServerReadyTimeout": 120000,
+      "startServerReadyPattern": "4173",
+      "startServerReadyTimeout": 30000,
       "url": [
         "http://127.0.0.1:4173/",
         "http://127.0.0.1:4173/learning-worlds",
