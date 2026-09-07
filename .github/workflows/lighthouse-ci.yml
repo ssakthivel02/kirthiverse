@@ -80,4 +80,5 @@ jobs:
           name: lighthouse-evidence-${{ github.event.pull_request.head.sha || github.sha }}
           path: .lighthouseci/
           if-no-files-found: ignore
+          include-hidden-files: true
           retention-days: 14
