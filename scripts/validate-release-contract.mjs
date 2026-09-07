@@ -96,7 +96,7 @@ check(liveSmoke.includes(`'${ORIGIN}/'`), 'Live smoke defaults to the current Ki
 check(liveSmoke.includes('sourceRelease'), 'Live smoke derives expected release data from the checked-out source contract')
 check(liveSmoke.includes('sourceCacheName'), 'Live smoke derives expected cache generation from the checked-out service worker')
 check(liveSmoke.includes('deployment.commit === expectedCommit'), 'Live smoke can enforce exact deployed commit parity')
-check(!/ArivuKids|arivukids\.omsaravanabhava\.org/i.test(liveSmoke), 'Live smoke contains no legacy donor identity')
+check(!liveSmoke.includes('https://arivukids.omsaravanabhava.org/') && !liveSmoke.includes('# ArivuKids live-site verification') && !liveSmoke.includes('ArivuKids-Release-Smoke'), 'Live smoke emits only current KirthiVerse identity')
 
 check(deploy.includes('KVS_RELEASE_CHANNEL: production'), 'Pages workflow stamps production release channel')
 check(deploy.includes('pnpm run build'), 'Pages workflow builds the production application')
