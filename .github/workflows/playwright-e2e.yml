@@ -32,8 +32,8 @@ jobs:
       - name: Install repository dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install pinned Playwright test runner for CI workspace
-        run: pnpm add -Dw @playwright/test@1.55.0 --lockfile=false
+      - name: Install pinned Playwright and axe runners for CI workspace
+        run: pnpm add -Dw @playwright/test@1.55.0 @axe-core/playwright@4.10.2 --lockfile=false
 
       - name: Install browser engines
         run: pnpm exec playwright install --with-deps chromium firefox webkit
