@@ -19,20 +19,12 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+      - name: Setup pnpm and Node
+        uses: pnpm/setup@v2.1.0
         with:
-          version: 11.23.0
-          run_install: false
-
-      - name: Setup Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install repository dependencies
-        run: pnpm install --frozen-lockfile
+          runtime: node@24
+          cache: true
+          require-lockfile: true
 
       - name: Install pinned Playwright and axe runners for CI workspace
         run: pnpm add -Dw @playwright/test@1.55.0 @axe-core/playwright@4.10.2 --lockfile=false
