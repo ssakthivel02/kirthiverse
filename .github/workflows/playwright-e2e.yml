@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout exact commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -51,7 +53,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-evidence-${{ github.sha }}
+          name: playwright-evidence-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             playwright-report/
             test-results/
