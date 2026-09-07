@@ -6,7 +6,7 @@
   "description": "KirthiVerse - Premium Educational Platform",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/copy-static-production-files.mjs",
+    "build": "vite build && node scripts/copy-static-production-files.mjs && node scripts/validate-bundle-budget.mjs",
     "validate:content": "node scripts/validate-content.mjs",
     "validate:kvs-supplement": "node scripts/validate-kvs-production-supplement.mjs",
     "validate:experience": "node scripts/validate-experience.mjs",
@@ -20,6 +20,7 @@
     "validate:entry": "node scripts/validate-entry-recovery.mjs",
     "validate:runtime": "node scripts/validate-runtime-recovery.mjs",
     "validate:dist": "node scripts/validate-dist.mjs",
+    "validate:bundle": "node scripts/validate-bundle-budget.mjs",
     "package:preview": "node scripts/create-local-preview-package.mjs",
     "test:browser": "node scripts/browser-smoke.mjs",
     "test:live": "node scripts/live-site-smoke.mjs",
