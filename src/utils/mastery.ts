@@ -1,17 +1,16 @@
-import { lessons, type Lesson } from '../content/lessons'
+import { learningLessonIndex, type LearningLessonIndexItem } from '../content/learningIndex.generated'
 import { getExplicitPrerequisites } from '../content/lessonPrerequisites'
-import { quizzes } from '../content/quizzes'
 import { storage, type QuizAttempt } from './storage'
 
 export type LearnerMasteryState = 'needs_practice' | 'building' | 'secure' | 'challenge_ready'
 
 export interface LessonMastery {
-  lesson: Lesson
+  lesson: LearningLessonIndexItem
   state: LearnerMasteryState
   latestScore: number | null
   attemptCount: number
-  prerequisite: Lesson | null
-  prerequisites: Lesson[]
+  prerequisite: LearningLessonIndexItem | null
+  prerequisites: LearningLessonIndexItem[]
   prerequisiteSecure: boolean
   misconceptionSignal: boolean
   recommendationReason: string
@@ -27,14 +26,14 @@ function attemptsForLesson(attempts: QuizAttempt[], lessonId: string) {
     .sort((a, b) => a.attemptDate - b.attemptDate)
 }
 
-function previousLesson(lesson: Lesson) {
-  return lessons
+function previousLesson(lesson: LearningLessonIndexItem) {
+  return learningLessonIndex
     .filter((candidate) => candidate.subject === lesson.subject && candidate.order < lesson.order)
     .sort((a, b) => b.order - a.order)[0] ?? null
 }
 
-function prerequisitesForLesson(lesson: Lesson) {
-  const explicit = getExplicitPrerequisites(lesson, lessons)
+function prerequisitesForLesson(lesson: LearningLessonIndexItem) {
+  const explicit = getExplicitPrerequisites(lesson, learningLessonIndex)
   if (explicit.length) return explicit
   const fallback = previousLesson(lesson)
   return fallback ? [fallback] : []
@@ -48,7 +47,7 @@ function isSecure(score: number | null) {
   return score !== null && score >= 80
 }
 
-function prerequisiteIsSecure(prerequisite: Lesson, attempts: QuizAttempt[], progress: ReturnType<typeof storage.getLessonsProgress>) {
+function prerequisiteIsSecure(prerequisite: LearningLessonIndexItem, attempts: QuizAttempt[], progress: ReturnType<typeof storage.getLessonsProgress>) {
   const latest = latestScore(attemptsForLesson(attempts, prerequisite.id))
   return isSecure(latest) || Boolean(progress[prerequisite.id]?.completed)
 }
@@ -57,7 +56,7 @@ export function getLessonMastery(): LessonMastery[] {
   const attempts = storage.getQuizAttempts()
   const progress = storage.getLessonsProgress()
 
-  return lessons.map((lesson) => {
+  return learningLessonIndex.map((lesson) => {
     const lessonAttempts = attemptsForLesson(attempts, lesson.id)
     const latest = latestScore(lessonAttempts)
     const prerequisites = prerequisitesForLesson(lesson)
@@ -121,7 +120,7 @@ export function getLessonMastery(): LessonMastery[] {
       recommendationReason,
       recommendationReasonTamil,
       nextAction,
-      quizQuestions: quizzes.filter((question) => question.lessonId === lesson.id).length,
+      quizQuestions: lesson.quizQuestions,
     }
   })
 }
