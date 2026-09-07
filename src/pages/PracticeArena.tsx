@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Pause, Play, RotateCcw, Sparkles, StopCircle } from 'lucide-react'
-import { quizzes, type QuizQuestion } from '../content/quizzes'
-import { lessons } from '../content/lessons'
+import type { Lesson } from '../content/lessons'
+import type { QuizQuestion } from '../content/quizzes'
+import { loadLearningRuntimeData } from '../content/learningRuntime'
 import { storage } from '../utils/storage'
 
 type Duration = 3 | 5 | 10
@@ -46,9 +47,10 @@ function scorePriority(question: QuizQuestion) {
   return 3
 }
 
-function buildQueue() {
-  return quizzes
+function buildQueue(source: QuizQuestion[]) {
+  return source
     .filter((question) => question.type === 'mcq' && question.options?.length)
+    .slice()
     .sort((a, b) => scorePriority(a) - scorePriority(b) || a.id.localeCompare(b.id))
 }
 
@@ -66,9 +68,13 @@ export default function PracticeArena() {
   const [startedAt, setStartedAt] = useState<number | null>(null)
   const [decisionSaved, setDecisionSaved] = useState(false)
   const [history, setHistory] = useState<ArenaHistoryItem[]>(() => typeof window === 'undefined' ? [] : readHistory())
-  const queue = useMemo(() => buildQueue(), [])
-  const question = queue[index % Math.max(queue.length, 1)]
-  const lesson = question ? lessons.find((item) => item.id === question.lessonId) : undefined
+  const [queue, setQueue] = useState<QuizQuestion[]>([])
+  const [runtimeLessons, setRuntimeLessons] = useState<Lesson[]>([])
+  const [loadingMission, setLoadingMission] = useState(false)
+  const [loadError, setLoadError] = useState('')
+
+  const question = queue.length ? queue[index % queue.length] : undefined
+  const lesson = question ? runtimeLessons.find((item) => item.id === question.lessonId) : undefined
 
   useEffect(() => {
     if (status !== 'running') return
@@ -85,15 +91,32 @@ export default function PracticeArena() {
     return () => window.clearInterval(timer)
   }, [status])
 
-  function startMission() {
-    setRemaining(duration * 60)
-    setIndex(0)
-    setSelected(null)
-    setAnswered(0)
-    setCorrect(0)
-    setStartedAt(Date.now())
-    setDecisionSaved(false)
-    setStatus('running')
+  async function startMission() {
+    if (loadingMission) return
+    setLoadingMission(true)
+    setLoadError('')
+    try {
+      const { lessons, quizzes } = await loadLearningRuntimeData()
+      const nextQueue = buildQueue(quizzes)
+      if (!nextQueue.length) {
+        setLoadError('No canonical multiple-choice questions are available yet.')
+        return
+      }
+      setQueue(nextQueue)
+      setRuntimeLessons(lessons)
+      setRemaining(duration * 60)
+      setIndex(0)
+      setSelected(null)
+      setAnswered(0)
+      setCorrect(0)
+      setStartedAt(Date.now())
+      setDecisionSaved(false)
+      setStatus('running')
+    } catch {
+      setLoadError('Kiki could not prepare the practice questions on this device. Please try again.')
+    } finally {
+      setLoadingMission(false)
+    }
   }
 
   function choose(optionIndex: number) {
@@ -141,10 +164,6 @@ export default function PracticeArena() {
   const minutes = String(Math.floor(remaining / 60)).padStart(2, '0')
   const seconds = String(remaining % 60).padStart(2, '0')
 
-  if (!question) {
-    return <main className="container py-16"><h1 className="text-3xl font-black">Kiki Practice Arena</h1><p className="mt-4">No canonical multiple-choice questions are available yet.</p></main>
-  }
-
   return (
     <main className={`min-h-screen ${calmMode ? 'bg-slate-50' : 'bg-gradient-to-b from-cyan-50 to-violet-50'} text-slate-950`}>
       <section className="container py-12">
@@ -160,11 +179,12 @@ export default function PracticeArena() {
                 {([3, 5, 10] as Duration[]).map((value) => <button key={value} type="button" aria-pressed={duration === value} onClick={() => setDuration(value)} className={`min-h-14 rounded-2xl border-2 font-black ${duration === value ? 'border-violet-700 bg-violet-50 text-violet-900' : 'border-slate-200 bg-white'}`}>{value} min</button>)}
               </div>
               <label className="mt-6 flex min-h-14 items-center justify-between gap-4 rounded-2xl bg-slate-100 px-5 font-bold"><span><span className="block">Calm Mode</span><span className="block text-sm font-normal text-slate-600">Reduced visual pressure and no urgent countdown display.</span></span><input type="checkbox" checked={calmMode} onChange={(event) => setCalmMode(event.target.checked)} className="h-5 w-5" /></label>
-              <button type="button" onClick={startMission} className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-6 font-black text-white"><Sparkles className="h-5 w-5" /> Start with Kiki</button>
+              <button type="button" disabled={loadingMission} onClick={() => void startMission()} className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-6 font-black text-white disabled:cursor-wait disabled:opacity-70"><Sparkles className="h-5 w-5" /> {loadingMission ? 'Preparing mission…' : 'Start with Kiki'}</button>
+              {loadError && <p className="mt-4 rounded-xl bg-rose-50 p-4 font-semibold text-rose-900" role="alert">{loadError}</p>}
             </section>
           )}
 
-          {(status === 'running' || status === 'paused') && (
+          {(status === 'running' || status === 'paused') && question && (
             <section className="mt-10 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div><p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">{lesson?.subject ?? question.subject}</p><p className="mt-1 text-sm text-slate-600">{calmMode ? 'Calm Mode · ' : ''}{answered} answered</p></div>
