@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, type ComponentType } from 'react'
 import { Redirect, Router, Route, Switch } from 'wouter'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
@@ -11,36 +11,44 @@ import LearningWorlds from '../pages/LearningWorlds'
 import PracticeArena from '../pages/PracticeArena'
 import MasteryConstellation from '../pages/MasteryConstellation'
 import FamilyBridge from '../pages/FamilyBridge'
+import { ensureLearningRuntime } from '../content/learningRuntime'
 import { storage } from '../utils/storage'
 
+function withLearningRuntime(loader: () => Promise<{ default: ComponentType }>) {
+  return lazy(async () => {
+    await ensureLearningRuntime()
+    return loader()
+  })
+}
+
 const NotFound = lazy(() => import('../pages/NotFound'))
-const SubjectPage = lazy(() => import('../pages/SubjectPage'))
-const LessonPage = lazy(() => import('../pages/LessonPage'))
-const QuizPage = lazy(() => import('../pages/QuizPage'))
-const StudentDashboard = lazy(() => import('../pages/StudentDashboard'))
-const ParentDashboard = lazy(() => import('../pages/ParentDashboard'))
-const Leaderboards = lazy(() => import('../pages/Leaderboards'))
-const GuidedTutor = lazy(() => import('../pages/GuidedTutor'))
-const Onboarding = lazy(() => import('../pages/Onboarding'))
-const Today = lazy(() => import('../pages/Today'))
-const Achievements = lazy(() => import('../pages/Achievements'))
-const TeacherDashboard = lazy(() => import('../pages/TeacherDashboard'))
-const Search = lazy(() => import('../pages/Search'))
-const Profile = lazy(() => import('../pages/Profile'))
-const Settings = lazy(() => import('../pages/Settings'))
-const PracticeHub = lazy(() => import('../pages/PracticeHub'))
-const Bookmarks = lazy(() => import('../pages/Bookmarks'))
-const ProgressReport = lazy(() => import('../pages/ProgressReport'))
-const TeacherResources = lazy(() => import('../pages/TeacherResources'))
-const FamilyGoalsPage = lazy(() => import('../pages/FamilyGoals'))
-const WeeklyReview = lazy(() => import('../pages/WeeklyReview'))
-const Wellbeing = lazy(() => import('../pages/Wellbeing'))
-const HelpCentre = lazy(() => import('../pages/HelpCentre'))
-const PlatformHealth = lazy(() => import('../pages/PlatformHealth'))
-const MistakeReview = lazy(() => import('../pages/MistakeReview'))
-const StudyPlanner = lazy(() => import('../pages/StudyPlanner'))
-const ActivityTimeline = lazy(() => import('../pages/ActivityTimeline'))
-const LearningNotes = lazy(() => import('../pages/LearningNotes'))
+const SubjectPage = withLearningRuntime(() => import('../pages/SubjectPage'))
+const LessonPage = withLearningRuntime(() => import('../pages/LessonPage'))
+const QuizPage = withLearningRuntime(() => import('../pages/QuizPage'))
+const StudentDashboard = withLearningRuntime(() => import('../pages/StudentDashboard'))
+const ParentDashboard = withLearningRuntime(() => import('../pages/ParentDashboard'))
+const Leaderboards = withLearningRuntime(() => import('../pages/Leaderboards'))
+const GuidedTutor = withLearningRuntime(() => import('../pages/GuidedTutor'))
+const Onboarding = withLearningRuntime(() => import('../pages/Onboarding'))
+const Today = withLearningRuntime(() => import('../pages/Today'))
+const Achievements = withLearningRuntime(() => import('../pages/Achievements'))
+const TeacherDashboard = withLearningRuntime(() => import('../pages/TeacherDashboard'))
+const Search = withLearningRuntime(() => import('../pages/Search'))
+const Profile = withLearningRuntime(() => import('../pages/Profile'))
+const Settings = withLearningRuntime(() => import('../pages/Settings'))
+const PracticeHub = withLearningRuntime(() => import('../pages/PracticeHub'))
+const Bookmarks = withLearningRuntime(() => import('../pages/Bookmarks'))
+const ProgressReport = withLearningRuntime(() => import('../pages/ProgressReport'))
+const TeacherResources = withLearningRuntime(() => import('../pages/TeacherResources'))
+const FamilyGoalsPage = withLearningRuntime(() => import('../pages/FamilyGoals'))
+const WeeklyReview = withLearningRuntime(() => import('../pages/WeeklyReview'))
+const Wellbeing = withLearningRuntime(() => import('../pages/Wellbeing'))
+const HelpCentre = withLearningRuntime(() => import('../pages/HelpCentre'))
+const PlatformHealth = withLearningRuntime(() => import('../pages/PlatformHealth'))
+const MistakeReview = withLearningRuntime(() => import('../pages/MistakeReview'))
+const StudyPlanner = withLearningRuntime(() => import('../pages/StudyPlanner'))
+const ActivityTimeline = withLearningRuntime(() => import('../pages/ActivityTimeline'))
+const LearningNotes = withLearningRuntime(() => import('../pages/LearningNotes'))
 
 function RouteLoadingFallback() {
   return (
