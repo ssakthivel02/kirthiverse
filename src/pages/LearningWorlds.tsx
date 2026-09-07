@@ -109,14 +109,14 @@ export default function LearningWorlds() {
 
           {visibleCards.length ? (
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {visibleCards.map((subject, index) => (
+              {visibleCards.map((subject) => (
                 <motion.button
                   key={subject.id}
                   type="button"
                   onClick={() => navigate(`/subject/${subject.id}`)}
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.035 }}
+                  initial={{ y: 18 }}
+                  animate={{ y: 0 }}
+                  transition={{ duration: 0.2 }}
                   whileHover={{ y: -7 }}
                   className="group overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white text-left shadow-sm hover:shadow-2xl focus-visible:ring-4 focus-visible:ring-violet-300"
                 >
@@ -135,7 +135,7 @@ export default function LearningWorlds() {
 
                   <div className="p-6">
                     <p className="min-h-14 leading-7 text-slate-600">{subject.description}</p>
-                    <div className="mt-5 flex items-center justify-between text-sm font-bold text-slate-500">
+                    <div className="mt-5 flex items-center justify-between text-sm font-bold text-slate-600">
                       <span>{subject.lessonCount} lessons</span>
                       <span>{subject.quizCount} questions</span>
                     </div>
@@ -143,7 +143,7 @@ export default function LearningWorlds() {
                       <div className={`h-full bg-gradient-to-r ${subject.color}`} style={{ width: `${subject.percentage}%` }} />
                     </div>
                     <div className="mt-5 flex items-center justify-between">
-                      <span className="text-sm font-bold text-slate-500">{subject.completed} missions complete</span>
+                      <span className="text-sm font-bold text-slate-600">{subject.completed} missions complete</span>
                       <span className="inline-flex items-center gap-2 font-black text-slate-950">Enter world <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></span>
                     </div>
                   </div>
@@ -154,7 +154,7 @@ export default function LearningWorlds() {
             <div className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white p-12 text-center">
               <Compass className="mx-auto h-10 w-10 text-slate-400" />
               <h2 className="mt-4 text-2xl font-black">No worlds match that search</h2>
-              <p className="mt-2 text-slate-500">Try another word or reset the filters.</p>
+              <p className="mt-2 text-slate-600">Try another word or reset the filters.</p>
               <button onClick={() => { setQuery(''); setFilter('all') }} className="mt-6 rounded-xl bg-slate-950 px-5 py-3 font-black text-white">Reset filters</button>
             </div>
           )}
