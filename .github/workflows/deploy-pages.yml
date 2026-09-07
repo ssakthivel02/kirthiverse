@@ -17,6 +17,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      KVS_RELEASE_CHANNEL: production
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,6 +55,10 @@ jobs:
             echo 'Uncompiled TSX entry detected in production output.'
             exit 1
           fi
+          test -f dist/release-status.json
+          test -f dist/deployment-metadata.json
+          node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('dist/release-status.json')); if(r.channel!=='production'||r.status!=='production-runtime-recovery-artifact'||r.buildCommit!==process.env.GITHUB_SHA) process.exit(1)"
+          node -e "const fs=require('fs'); const d=JSON.parse(fs.readFileSync('dist/deployment-metadata.json')); if(d.channel!=='production'||d.status!=='production-runtime-recovery-artifact'||d.commit!==process.env.GITHUB_SHA||d.sourceRef!=='main') process.exit(1)"
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
