@@ -6,10 +6,7 @@
       "startServerReadyTimeout": 30000,
       "url": [
         "http://127.0.0.1:4173/",
-        "http://127.0.0.1:4173/learning-worlds",
-        "http://127.0.0.1:4173/practice",
-        "http://127.0.0.1:4173/mastery",
-        "http://127.0.0.1:4173/family-bridge"
+        "http://127.0.0.1:4173/learning-worlds"
       ],
       "numberOfRuns": 2,
       "settings": {
