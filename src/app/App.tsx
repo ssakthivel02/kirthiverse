@@ -14,6 +14,7 @@ import LessonPage from '../pages/LessonPage'
 import QuizPage from '../pages/QuizPage'
 import StudentDashboard from '../pages/StudentDashboard'
 import ParentDashboard from '../pages/ParentDashboard'
+import FamilyBridge from '../pages/FamilyBridge'
 import Leaderboards from '../pages/Leaderboards'
 import GuidedTutor from '../pages/GuidedTutor'
 import Onboarding from '../pages/Onboarding'
@@ -65,6 +66,7 @@ export default function App() {
               <Route path="/practice" component={PracticeArena} />
               <Route path="/practice-hub" component={PracticeHub} />
               <Route path="/mastery" component={MasteryConstellation} />
+              <Route path="/family-bridge" component={FamilyBridge} />
               <Route path="/mistake-review" component={MistakeReview} />
               <Route path="/study-planner" component={StudyPlanner} />
               <Route path="/activity" component={ActivityTimeline} />
