@@ -1,8 +1,8 @@
-# KVS B39 production seed
+# KVS B39 production progression
 
 ## Purpose
 
-Promote a deliberately bounded, runtime-compatible tranche from the `KVS-STAGING-2026-09-B39` corpus into the existing KirthiVerse website without exposing staging material that still requires authoritative-source reconciliation.
+Promote only runtime-compatible, source-reconciled KirthiVerse content from the `KVS-STAGING-2026-09-B39` corpus into the existing website while preserving the stable local-first production shell and refusing bulk publication of unreconciled staging material.
 
 ## Staging baseline
 
@@ -13,59 +13,74 @@ Promote a deliberately bounded, runtime-compatible tranche from the `KVS-STAGING
 - Staging projects: 32
 - Minimum approved staging question density: 4 questions per standard lesson
 
-The staging corpus is not being bulk-published by this release.
+The full 1,003-record staging corpus is not declared canonical or production-ready by this release.
 
-## Production seed promoted
+## Production tranche
 
-Source batches: B37 and B38 only.
+Source batches: B37, B38 and source-verified B39.
 
-- 12 lessons
-- 48 questions
-- 4 questions for every promoted lesson
-- Subjects mapped to existing runtime worlds: Mathematics, Tamil, English and Coding
-- Stable KVS record IDs are preserved
-- Existing local-first privacy boundaries are unchanged
+- 18 promoted KVS lessons
+- 72 promoted KVS questions
+- exactly 4 questions per promoted lesson
+- subjects: Mathematics, Tamil, English, Coding and Science
+- stable KVS record IDs preserved
+- existing local-first privacy boundaries unchanged
 
-Runtime totals after promotion:
+Runtime totals after this release:
 
-- 89 lessons
-- 125 questions
+- 95 lessons
+- 149 questions
 - 10 existing learning worlds
 
-## Deliberately blocked
+## B39 Science reconciliation
 
-B39 Science/Biology remains out of the production runtime until externally dependent biological claims receive authoritative-source verification and reconciliation. The seed validator explicitly rejects accidental B39 leakage.
+The six B39 Biology/Science lessons and their 24 questions were held out of the first production seed until their externally dependent claims were checked against authoritative or established educational references.
 
-This is a release boundary, not a claim that the full 1,003-record staging corpus is canonical or production-ready.
+The production source-provenance register maps every B39 Science lesson to one or more of:
+
+- UK Department for Education science programmes of study;
+- OpenStax Biology 2e / Anatomy & Physiology 2e;
+- NIDDK/NIH digestive-system guidance;
+- NIH/NIGMS cell-division guidance;
+- NCBI Bookshelf genetics/mitosis reference.
+
+A substantive reconciliation correction is preserved in the mitosis lesson: DNA replication occurs during S phase before mitosis; mitosis separates the copied chromosomes. The validator rejects regression to wording that treats DNA replication as occurring during mitosis.
 
 ## Release gates
 
-The branch adds `validate:kvs-supplement`, which verifies:
+`pnpm run validate:kvs-supplement` verifies:
 
-- exactly 12 seed lessons and 48 seed questions;
-- unique KVS IDs;
+- exactly 18 promoted lessons and 72 promoted questions;
+- unique KVS lesson/question IDs;
 - valid lesson references;
 - runtime-compatible question types;
 - valid MCQ answer indices;
 - exactly four questions per promoted lesson;
-- no B39 Science/Biology leakage.
+- exactly six B39 Science lessons;
+- authoritative provenance for all six B39 Science lesson IDs;
+- HTTPS source URLs restricted to the approved authoritative/reference hosts;
+- corrected mitosis wording.
 
-The PR workflow additionally runs TypeScript, lint, production build and output guards. The main Pages workflow repeats the seed validator before deployment.
+The pull-request workflow additionally runs TypeScript, lint, production build and production-output guards. The main Pages workflow repeats the KVS production validator before deployment.
+
+## Privacy and identity boundary
+
+This release remains local-first. It does not enable cloud child profiles, school rosters or remote teacher monitoring.
 
 ## PWA/cache safety
 
-The service-worker cache is rotated to `kirthiverse-shell-v5-kvs-b39-seed-20260906` so previously installed clients are forced onto a fresh shell/cache generation after deployment.
+The service-worker cache generation is rotated for the B39 Science deployment so installed clients receive the updated production shell and release metadata.
 
 ## Rollback
 
-If the seed causes a production regression:
+If the B39 Science release causes a production regression:
 
-1. revert the production-seed merge on `main`;
-2. GitHub Pages redeploys the previous main source;
-3. the service-worker change from the revert provides a new update event on subsequent deployment;
-4. preserve the B1–B39 staging package for later controlled reconciliation.
+1. revert the B39 Science merge on `main`;
+2. allow GitHub Pages to redeploy the previous main source;
+3. rotate the service-worker generation again if necessary;
+4. keep the source-verified B1–B39 package preserved for controlled re-promotion.
 
 ## Remaining manual/evidence gates
 
 - Physical assistive-technology listening review with Narrator or NVDA remains a manual accessibility follow-up.
-- B39 and other staging records marked `needs_source_verification` remain blocked from automatic production promotion until their source claims are reconciled.
+- Unpromoted records from the wider B1–B39 staging corpus still require controlled reconciliation/promotion before they can be treated as production content.
