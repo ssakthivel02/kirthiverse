@@ -1,6 +1,6 @@
 {
   "product": "KirthiVerse",
-  "release": "KVS-PLATFORM-001-B39-SEED",
+  "release": "KVS-PLATFORM-001-B39-SCIENCE",
   "channel": "production",
   "status": "production",
   "runtimeRecoveryReady": true,
@@ -9,15 +9,18 @@
   "schoolRosters": false,
   "remoteTeacherMonitoring": false,
   "subjects": 10,
-  "lessons": 89,
-  "quizQuestions": 125,
+  "lessons": 95,
+  "quizQuestions": 149,
   "quizCoveragePercent": 100,
-  "kvsStagingBaseline": "KVS-STAGING-2026-09-B39",
+  "kvsStagingBaseline": "KVS-STAGING-2026-09-B39-SOURCE-VERIFIED",
   "kvsStagingRecords": 1003,
-  "kvsProductionSeedLessons": 12,
-  "kvsProductionSeedQuestions": 48,
-  "kvsProductionSeedSourceBatches": ["B37", "B38"],
-  "kvsBlockedPendingSourceVerification": ["B39 science/biology"],
+  "kvsProductionSeedLessons": 18,
+  "kvsProductionSeedQuestions": 72,
+  "kvsProductionSeedSourceBatches": ["B37", "B38", "B39"],
+  "kvsB39ScienceSourceVerifiedLessons": 6,
+  "kvsB39ScienceSourceVerifiedQuestions": 24,
+  "kvsB39ScienceSourceVerificationState": "source-verified",
+  "kvsBlockedPendingSourceVerification": [],
   "browserRouteChecks": 116,
   "automatedLearnerRecoveryJourney": true,
   "automatedOfflineRecovery": true,
@@ -27,9 +30,10 @@
   "productionDriftWatchHours": 2,
   "qualityGates": [
     "content-integrity",
-    "kvs-production-seed-integrity",
-    "four-question-density-for-kvs-seed",
-    "b39-source-verification-block",
+    "kvs-production-tranche-integrity",
+    "four-question-density-for-kvs-production-tranche",
+    "b39-science-authoritative-provenance",
+    "b39-mitosis-replication-distinction",
     "complete-lesson-quiz-coverage",
     "product-experience",
     "privacy-and-trust",
@@ -68,6 +72,6 @@
   ],
   "remainingGates": [
     "assistive-technology-review",
-    "authoritative-source-reconciliation-for-blocked-staging-content"
+    "controlled-reconciliation-for-unpromoted-staging-content"
   ]
 }
