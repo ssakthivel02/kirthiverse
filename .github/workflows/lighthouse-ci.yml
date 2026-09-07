@@ -67,18 +67,26 @@ jobs:
           node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('dist/release-status.json')); if(r.buildCommit!==process.env.KVS_BUILD_COMMIT) process.exit(1)"
           node -e "const fs=require('fs'); const d=JSON.parse(fs.readFileSync('dist/deployment-metadata.json')); if(d.commit!==process.env.KVS_BUILD_COMMIT||d.sourceRef!==process.env.KVS_SOURCE_REF) process.exit(1)"
 
-      - name: Collect Lighthouse reports
-        run: pnpm exec lhci collect --config=./lighthouserc.json
+      - name: Audit public indexable routes
+        run: |
+          pnpm exec lhci collect --config=./lighthouserc.json
+          pnpm exec lhci assert --config=./lighthouserc.json
+          mv .lighthouseci .lighthouseci-public
 
-      - name: Assert Lighthouse budgets
-        run: pnpm exec lhci assert --config=./lighthouserc.json
+      - name: Audit private learner routes
+        run: |
+          pnpm exec lhci collect --config=./lighthouserc.private.json
+          pnpm exec lhci assert --config=./lighthouserc.private.json
+          mv .lighthouseci .lighthouseci-private
 
       - name: Upload Lighthouse evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lighthouse-evidence-${{ github.event.pull_request.head.sha || github.sha }}
-          path: .lighthouseci/
+          path: |
+            .lighthouseci-public/
+            .lighthouseci-private/
           if-no-files-found: ignore
           include-hidden-files: true
           retention-days: 14
