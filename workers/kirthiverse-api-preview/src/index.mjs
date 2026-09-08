@@ -49,13 +49,14 @@ function statusPayload(env, id) {
   return {
     ok: true,
     service: 'kirthiverse-cloud-identity-api-preview',
-    version: '1.1.0-preview',
+    version: '1.2.0-preview',
     requestId: id,
     previewEnabled: previewEnabled(env),
     realChildDataAllowed: false,
     browserDirectDatabaseAccessAllowed: false,
     authenticationMode: 'adult-owned-external-provider',
-    authenticationBoundary: 'fail-closed-verifier-required',
+    authenticationBoundary: 'jwks-signature-verification-fail-closed',
+    externalProviderVerifierConfigured: Boolean(env.KVS_AUTH_JWKS_URL && env.KVS_AUTH_ISSUER && env.KVS_AUTH_AUDIENCE),
     persistenceState: 'not-connected',
   }
 }

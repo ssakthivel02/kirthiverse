@@ -1,3 +1,5 @@
+import { createExternalProviderVerifier, ExternalVerifierError } from './jwt-verifier.mjs'
+
 const ALLOWED_ROLES = new Set(['guardian', 'teacher', 'school_admin', 'platform_admin'])
 
 export class AuthError extends Error {
@@ -30,6 +32,7 @@ export function validateVerifiedClaims(claims, config, nowSeconds = Math.floor(D
   if (!claims.sub || typeof claims.sub !== 'string') throw new AuthError('subject_missing', 401)
   if (!Number.isFinite(claims.exp) || claims.exp <= nowSeconds) throw new AuthError('token_expired', 401)
   if (Number.isFinite(claims.nbf) && claims.nbf > nowSeconds + 60) throw new AuthError('token_not_yet_valid', 401)
+  if (Number.isFinite(claims.iat) && claims.iat > nowSeconds + 60) throw new AuthError('token_issued_in_future', 401)
   if (claims.kvs_account_type !== 'adult') throw new AuthError('adult_account_required', 403)
 
   const role = claims.kvs_role
@@ -51,12 +54,33 @@ export function validateVerifiedClaims(claims, config, nowSeconds = Math.floor(D
   }
 }
 
+function resolveVerifier(env, options) {
+  if (typeof options.verifyToken === 'function') return options.verifyToken
+  if (typeof env.KVS_AUTH_VERIFY_TOKEN === 'function') return env.KVS_AUTH_VERIFY_TOKEN
+  if (!env.KVS_AUTH_JWKS_URL) return null
+  return createExternalProviderVerifier(env, { fetchImpl: options.fetchImpl })
+}
+
 export async function authenticateAdultRequest(request, env = {}, options = {}) {
   const token = parseBearerToken(request)
-  const verifyToken = options.verifyToken || env.KVS_AUTH_VERIFY_TOKEN
+
+  let verifyToken
+  try {
+    verifyToken = resolveVerifier(env, options)
+  } catch (error) {
+    if (error instanceof ExternalVerifierError) throw new AuthError(error.code, error.status)
+    throw error
+  }
   if (typeof verifyToken !== 'function') throw new AuthError('auth_verifier_not_configured', 503)
 
-  const claims = await verifyToken(token)
+  let claims
+  try {
+    claims = await verifyToken(token)
+  } catch (error) {
+    if (error instanceof ExternalVerifierError) throw new AuthError(error.code, error.status)
+    throw error
+  }
+
   return validateVerifiedClaims(claims, {
     issuer: env.KVS_AUTH_ISSUER,
     audience: env.KVS_AUTH_AUDIENCE,
