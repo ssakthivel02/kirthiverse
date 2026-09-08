@@ -93,3 +93,44 @@ test('mobile progress table is keyboard focusable without document overflow', as
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
   expect(overflow).toBeLessThanOrEqual(1)
 })
+
+test('200 percent zoom equivalent remains reflow-safe on critical public routes', async ({ page }) => {
+  await page.setViewportSize({ width: 640, height: 900 })
+
+  for (const route of ['/', '/learning-worlds', '/search', '/help']) {
+    await page.goto(route)
+    await expect(page.locator('main').first()).toBeVisible()
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(overflow, `horizontal overflow at 200% zoom equivalent on ${route}`).toBeLessThanOrEqual(1)
+  }
+})
+
+test('mobile menu Escape closes and restores focus to the trigger', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+
+  const trigger = page.getByRole('button', { name: 'Open menu' })
+  await trigger.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('button', { name: 'Close menu' })).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.locator('#mobile-navigation')).toBeVisible()
+
+  await page.keyboard.press('Escape')
+  await expect(page.locator('#mobile-navigation')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Open menu' })).toBeFocused()
+})
+
+test('mobile menu remains keyboard reachable in reverse tab order', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+
+  const trigger = page.getByRole('button', { name: 'Open menu' })
+  await trigger.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('#mobile-navigation')).toBeVisible()
+
+  await page.keyboard.press('Shift+Tab')
+  const activeTag = await page.evaluate(() => document.activeElement?.tagName ?? '')
+  expect(['A', 'BUTTON']).toContain(activeTag)
+  await expect(page.locator('#mobile-navigation')).toBeVisible()
+})
