@@ -10,7 +10,7 @@ import Home from '../pages/Home'
 import LearningWorlds from '../pages/LearningWorlds'
 import PracticeArena from '../pages/PracticeArena'
 import MasteryConstellation from '../pages/MasteryConstellation'
-import FamilyBridge from '../pages/FamilyBridge'
+import FamilyBridgeDepth from '../pages/FamilyBridgeDepth'
 import { ensureLearningRuntime } from '../content/learningRuntime'
 import { storage } from '../utils/storage'
 
@@ -87,7 +87,7 @@ export default function App() {
                 <Route path="/practice" component={PracticeArena} />
                 <Route path="/practice-hub" component={PracticeHub} />
                 <Route path="/mastery" component={MasteryConstellation} />
-                <Route path="/family-bridge" component={FamilyBridge} />
+                <Route path="/family-bridge" component={FamilyBridgeDepth} />
                 <Route path="/mistake-review" component={MistakeReview} />
                 <Route path="/study-planner" component={StudyPlanner} />
                 <Route path="/activity" component={ActivityTimeline} />
