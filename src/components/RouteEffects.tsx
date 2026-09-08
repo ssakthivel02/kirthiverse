@@ -19,6 +19,7 @@ const routes: RouteMetadata[] = [
   { pattern: /^\/lesson\//, title: 'Lesson · KirthiVerse', description: 'Study a structured KirthiVerse lesson with objectives, examples, explanations and practice.', indexable: true },
   { pattern: /^\/quiz\//, title: 'Quiz Mission · KirthiVerse', description: 'Practise a KirthiVerse lesson with explanations, retries and local mastery evidence.', indexable: true },
   { pattern: /^\/search/, title: 'Search · KirthiVerse', description: 'Search KirthiVerse lessons and quiz questions locally without sending the query to a third party.', indexable: true },
+  { pattern: /^\/kiki-teacher/, title: 'Kiki Animated Teacher · KirthiVerse', description: 'Meet Kiki, the bilingual animated KirthiVerse learning guide with calm, local-first teaching states.', indexable: true },
   { pattern: /^\/ai-tutor/, title: 'Guided Tutor · KirthiVerse', description: 'Use curated, local-first guidance to continue learning safely within KirthiVerse.', indexable: true },
   { pattern: /^\/teacher-resources/, title: 'Teacher Resources · KirthiVerse', description: 'Browse the local KirthiVerse lesson and quiz inventory for classroom and tutoring preparation.', indexable: true },
   { pattern: /^\/help/, title: 'Help Centre · KirthiVerse', description: 'Find KirthiVerse guidance for learners, families and educators, including local progress and offline use.', indexable: true },
