@@ -20,7 +20,7 @@ test('contextual Kiki explains, invites a learner try and switches to Tamil', as
   await page.getByRole('button', { name: 'Explain with Kiki' }).click()
   await expect(page.getByText(/The key idea in this lesson is:/)).toBeVisible()
 
-  await page.getByRole('button', { name: "I'll try" }).click()
+  await page.getByRole('button', { name: /I[’']ll try/ }).click()
   await expect(page.getByText(/Now explain this example in your own words:/)).toBeVisible()
 
   await page.getByRole('button', { name: 'தமிழ்' }).click()
