@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'wouter'
-import { Award, BarChart3, Bookmark, CalendarCheck2, CalendarRange, CircleAlert, CircleHelp, ClipboardList, Dumbbell, Flame, GraduationCap, HeartPulse, History, Library, Menu, Rocket, Search, Settings, Target, UserRound, X, Zap } from 'lucide-react'
+import { Award, BarChart3, Bookmark, CalendarCheck2, CalendarRange, CircleAlert, CircleHelp, ClipboardList, Dumbbell, Flame, GraduationCap, HeartPulse, History, Library, Menu, Rocket, Search, Settings, Sparkles, Target, UserRound, X, Zap } from 'lucide-react'
 import { storage } from '../utils/storage'
 
 const primaryLinks = [
@@ -9,6 +9,7 @@ const primaryLinks = [
   { label: 'Learning Worlds', href: '/learning-worlds', icon: Rocket },
   { label: 'Search', href: '/search', icon: Search },
   { label: 'Guided Tutor', href: '/ai-tutor', icon: GraduationCap },
+  { label: 'Kiki Teacher', href: '/kiki-teacher', icon: Sparkles },
   { label: 'Achievements', href: '/achievements', icon: Award },
 ]
 
@@ -95,6 +96,7 @@ export default function Header() {
           <div className="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-white/10 dark:bg-white/5" aria-label="Choose experience">
             {roleLinks.map((link) => <Link key={link.href} href={link.href} className={`rounded-lg px-3 py-2 text-xs font-black ${isActive(location, link.href) ? 'bg-white text-slate-950 shadow-sm dark:bg-cyan-300' : 'text-slate-500 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white'}`}>{link.label}</Link>)}
           </div>
+          <Link href="/kiki-teacher" aria-label="Open Kiki animated teacher" className={`grid h-11 w-11 place-items-center rounded-xl border ${isActive(location, '/kiki-teacher') ? 'border-violet-400 bg-violet-50 text-violet-900' : 'border-slate-200 bg-white hover:border-violet-300 dark:border-white/10 dark:bg-white/5'}`}><Sparkles className="h-5 w-5" aria-hidden="true" /></Link>
           <Link href="/help" aria-label="Open help centre" className={`grid h-11 w-11 place-items-center rounded-xl border ${isActive(location, '/help') ? 'border-cyan-400 bg-cyan-50 text-cyan-900' : 'border-slate-200 bg-white hover:border-cyan-300 dark:border-white/10 dark:bg-white/5'}`}><CircleHelp className="h-5 w-5" aria-hidden="true" /></Link>
           <Link href="/settings" aria-label="Open settings and data" className={`grid h-11 w-11 place-items-center rounded-xl border ${isActive(location, '/settings') ? 'border-cyan-400 bg-cyan-50 text-cyan-900' : 'border-slate-200 bg-white hover:border-cyan-300 dark:border-white/10 dark:bg-white/5'}`}><Settings className="h-5 w-5" aria-hidden="true" /></Link>
           <Link href={profileRoute} aria-label={profile ? 'Edit learner profile' : 'Set up learner profile'} className="flex min-h-11 items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 shadow-sm hover:border-cyan-300 dark:border-white/10 dark:bg-white/5">
