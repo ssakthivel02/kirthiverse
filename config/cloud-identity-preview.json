@@ -1,0 +1,29 @@
+{
+  "contractVersion": "1.0.0-preview",
+  "database": "kirthiverse_preview",
+  "engine": "mysql",
+  "minimumEngineVersion": "8.4",
+  "environment": "preview",
+  "featureFlag": "KVS_CLOUD_IDENTITY_PREVIEW",
+  "enabledByDefault": false,
+  "realChildDataAllowed": false,
+  "browserDirectDatabaseAccessAllowed": false,
+  "authenticationMode": "adult-owned-external-provider",
+  "passwordStorageAllowed": false,
+  "learnerDirectLoginAllowed": false,
+  "remoteTeacherMonitoringAllowed": false,
+  "schoolRosterSyncAllowed": false,
+  "sensitiveFieldPolicy": "application-encrypted-before-persistence",
+  "requiredReleaseGates": [
+    "adult-authentication",
+    "guardian-consent",
+    "rbac",
+    "tenant-isolation",
+    "encryption-key-management",
+    "retention-deletion-export",
+    "audit-logging",
+    "database-network-restriction",
+    "abuse-rate-limiting",
+    "security-review"
+  ]
+}
