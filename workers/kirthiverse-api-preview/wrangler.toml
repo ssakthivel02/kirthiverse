@@ -1,0 +1,14 @@
+name = "kirthiverse-api-preview"
+main = "src/index.mjs"
+compatibility_date = "2026-09-08"
+workers_dev = true
+
+[vars]
+KVS_CLOUD_IDENTITY_PREVIEW = "false"
+KVS_ALLOWED_ORIGINS = "https://kirthiverse.omsaravanabhava.org"
+
+# Preview safety contract:
+# - no database binding in this slice
+# - no browser-direct database credentials
+# - no real child data
+# - adult authentication must be implemented before protected routes are enabled
