@@ -63,7 +63,14 @@ function resolveVerifier(env, options) {
 
 export async function authenticateAdultRequest(request, env = {}, options = {}) {
   const token = parseBearerToken(request)
-  const verifyToken = resolveVerifier(env, options)
+
+  let verifyToken
+  try {
+    verifyToken = resolveVerifier(env, options)
+  } catch (error) {
+    if (error instanceof ExternalVerifierError) throw new AuthError(error.code, error.status)
+    throw error
+  }
   if (typeof verifyToken !== 'function') throw new AuthError('auth_verifier_not_configured', 503)
 
   let claims
