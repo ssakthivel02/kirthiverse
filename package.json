@@ -21,7 +21,6 @@
     "validate:release": "node scripts/validate-release-contract.mjs",
     "validate:pwa": "node scripts/validate-release-contract.mjs",
     "validate:ops": "node scripts/validate-release-contract.mjs",
-    "validate:entry": "node scripts/validate-entry-recovery.mjs",
     "validate:runtime": "node scripts/validate-release-contract.mjs",
     "validate:identity": "node scripts/validate-public-identity.mjs",
     "validate:dist": "node scripts/validate-dist.mjs",
