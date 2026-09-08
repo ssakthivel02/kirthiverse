@@ -5,7 +5,10 @@
   "license": "MIT",
   "description": "KirthiVerse - Premium Educational Platform",
   "scripts": {
+    "generate:learning-index": "node scripts/generate-learning-index.mjs",
+    "predev": "pnpm run generate:learning-index",
     "dev": "vite",
+    "prebuild": "pnpm run generate:learning-index",
     "build": "node scripts/validate-public-identity.mjs && vite build && node scripts/copy-static-production-files.mjs && node scripts/validate-bundle-budget.mjs",
     "validate:content": "node scripts/validate-content.mjs",
     "validate:kvs-supplement": "node scripts/validate-kvs-production-supplement.mjs",
@@ -27,7 +30,9 @@
     "test:browser": "node scripts/browser-smoke.mjs",
     "test:live": "node scripts/live-site-smoke.mjs",
     "preview": "vite preview",
+    "pretype-check": "pnpm run generate:learning-index",
     "type-check": "tsc --noEmit",
+    "prelint": "pnpm run generate:learning-index",
     "lint": "eslint src --ext .ts,.tsx",
     "check": "pnpm run validate:content && pnpm run validate:kvs-supplement && pnpm run validate:experience && pnpm run validate:trust && pnpm run validate:data && pnpm run validate:a11y && pnpm run validate:identity && pnpm run validate:contract && pnpm run type-check && pnpm run lint && pnpm run build && pnpm run validate:dist",
     "format": "prettier --write ."

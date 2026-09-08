@@ -1,5 +1,3 @@
-import type { Lesson } from './lessons'
-
 /**
  * Explicit runtime prerequisite graph for relationships we can justify from the
  * current production curriculum. Missing entries intentionally fall back to the
@@ -17,9 +15,9 @@ export const lessonPrerequisiteIds: Record<string, string[]> = {
   'sci-004': ['sci-001', 'sci-002', 'sci-003'],
 }
 
-export function getExplicitPrerequisites(lesson: Lesson, allLessons: Lesson[]) {
+export function getExplicitPrerequisites<T extends { id: string }>(lesson: T, allLessons: T[]) {
   const ids = lessonPrerequisiteIds[lesson.id]
   if (!ids?.length) return []
   const byId = new Map(allLessons.map((item) => [item.id, item]))
-  return ids.map((id) => byId.get(id)).filter((item): item is Lesson => Boolean(item))
+  return ids.map((id) => byId.get(id)).filter((item): item is T => Boolean(item))
 }

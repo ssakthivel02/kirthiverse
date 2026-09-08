@@ -2,8 +2,7 @@ import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useLocation } from 'wouter'
 import { ArrowRight, BookOpen, Compass, Search, Sparkles, Trophy, Zap } from 'lucide-react'
-import { lessons } from '../content/lessons'
-import { quizzes } from '../content/quizzes'
+import { learningLessonIndex, learningTotals, learningWorldStats } from '../content/learningIndex.generated'
 import { storage } from '../utils/storage'
 
 const subjects = [
@@ -28,11 +27,11 @@ export default function LearningWorlds() {
   const progress = storage.getLessonsProgress()
 
   const cards = useMemo(() => subjects.map((subject) => {
-    const subjectLessons = lessons.filter((lesson) => slug(lesson.subject) === subject.id)
-    const subjectQuizzes = quizzes.filter((question) => slug(question.subject) === subject.id)
+    const subjectLessons = learningLessonIndex.filter((lesson) => slug(lesson.subject) === subject.id)
+    const stats = learningWorldStats[subject.id] ?? { lessonCount: subjectLessons.length, quizCount: 0 }
     const completed = subjectLessons.filter((lesson) => progress[lesson.id]?.completed).length
-    const percentage = subjectLessons.length ? Math.round((completed / subjectLessons.length) * 100) : 0
-    return { ...subject, lessonCount: subjectLessons.length, quizCount: subjectQuizzes.length, completed, percentage }
+    const percentage = stats.lessonCount ? Math.round((completed / stats.lessonCount) * 100) : 0
+    return { ...subject, lessonCount: stats.lessonCount, quizCount: stats.quizCount, completed, percentage }
   }), [progress])
 
   const visibleCards = cards.filter((subject) => {
@@ -61,8 +60,8 @@ export default function LearningWorlds() {
 
             <div className="grid grid-cols-3 gap-3">
               {[
-                { icon: BookOpen, value: lessons.length, label: 'Lessons' },
-                { icon: Trophy, value: quizzes.length, label: 'Questions' },
+                { icon: BookOpen, value: learningTotals.lessons, label: 'Lessons' },
+                { icon: Trophy, value: learningTotals.questions, label: 'Questions' },
                 { icon: Zap, value: completedLessons, label: 'Completed' },
               ].map(({ icon: Icon, value, label }) => (
                 <div key={label} className="rounded-2xl border border-white/10 bg-white/10 p-4 text-center backdrop-blur">
