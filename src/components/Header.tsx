@@ -42,6 +42,7 @@ export default function Header() {
   const [location] = useLocation()
   const menuRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const restoreFocusAfterCloseRef = useRef(false)
   const profile = storage.getProfile()
   const stats = storage.getStats()
   const level = Math.floor(stats.totalXP / 500) + 1
@@ -52,10 +53,18 @@ export default function Header() {
   }, [location])
 
   useEffect(() => {
+    if (!isOpen && restoreFocusAfterCloseRef.current) {
+      restoreFocusAfterCloseRef.current = false
+      const frame = window.requestAnimationFrame(() => triggerRef.current?.focus({ preventScroll: true }))
+      return () => window.cancelAnimationFrame(frame)
+    }
+  }, [isOpen])
+
+  useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape' && isOpen) {
+        restoreFocusAfterCloseRef.current = true
         setIsOpen(false)
-        triggerRef.current?.focus()
       }
     }
     function onPointerDown(event: PointerEvent) {
