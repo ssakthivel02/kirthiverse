@@ -27,6 +27,7 @@
     "test:cloud-identity-api": "node scripts/test-cloud-identity-api-preview.mjs",
     "validate:adult-auth": "node scripts/validate-adult-auth-boundary.mjs",
     "validate:external-verifier": "node scripts/validate-external-provider-verifier.mjs",
+    "validate:trusted-role-resolver": "node scripts/validate-trusted-role-resolver.mjs",
     "validate:dist": "node scripts/validate-dist.mjs",
     "validate:bundle": "node scripts/validate-bundle-budget.mjs",
     "package:preview": "node scripts/create-local-preview-package.mjs",
@@ -37,7 +38,7 @@
     "type-check": "tsc --noEmit",
     "prelint": "pnpm run generate:learning-index",
     "lint": "eslint src --ext .ts,.tsx",
-    "check": "pnpm run validate:content && pnpm run validate:kvs-supplement && pnpm run validate:experience && pnpm run validate:trust && pnpm run validate:data && pnpm run validate:a11y && pnpm run validate:identity && pnpm run validate:cloud-identity && pnpm run test:cloud-identity-api && pnpm run validate:adult-auth && pnpm run validate:external-verifier && pnpm run validate:contract && pnpm run type-check && pnpm run lint && pnpm run build && pnpm run validate:dist",
+    "check": "pnpm run validate:content && pnpm run validate:kvs-supplement && pnpm run validate:experience && pnpm run validate:trust && pnpm run validate:data && pnpm run validate:a11y && pnpm run validate:identity && pnpm run validate:cloud-identity && pnpm run test:cloud-identity-api && pnpm run validate:adult-auth && pnpm run validate:external-verifier && pnpm run validate:trusted-role-resolver && pnpm run validate:contract && pnpm run type-check && pnpm run lint && pnpm run build && pnpm run validate:dist",
     "format": "prettier --write ."
   },
   "dependencies": {
