@@ -22,6 +22,7 @@ function withLearningRuntime(loader: () => Promise<{ default: ComponentType }>) 
 }
 
 const NotFound = lazy(() => import('../pages/NotFound'))
+const KikiTeacher = lazy(() => import('../pages/KikiTeacher'))
 const SubjectPage = withLearningRuntime(() => import('../pages/SubjectPage'))
 const LessonPage = withLearningRuntime(() => import('../pages/LessonPage'))
 const QuizPage = withLearningRuntime(() => import('../pages/QuizPage'))
@@ -108,6 +109,10 @@ export default function App() {
                 <Route path="/teacher-resources" component={TeacherResources} />
                 <Route path="/achievements" component={Achievements} />
                 <Route path="/leaderboards" component={Leaderboards} />
+                <Route path="/kiki">
+                  <Redirect to="/kiki-teacher" replace />
+                </Route>
+                <Route path="/kiki-teacher" component={KikiTeacher} />
                 <Route path="/ai-tutor" component={GuidedTutor} />
                 <Route path="/learning-worlds" component={LearningWorlds} />
                 <Route path="/subject/:id" component={SubjectPage} />
