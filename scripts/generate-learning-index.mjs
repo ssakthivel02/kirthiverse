@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import ts from 'typescript'
 
 const root = process.cwd()
 const sources = [
@@ -15,45 +16,88 @@ const sources = [
   'src/content/kvsProductionPrerequisites.ts',
 ]
 
-function readValue(block, key) {
-  const match = block.match(new RegExp(`\\b${key}:\\s*([^\\n]+)`))
-  if (!match) return null
-  const raw = match[1].trim().replace(/,$/, '')
-  if (!raw) return null
-  if (raw[0] === '"' || raw[0] === "'") {
-    const quote = raw[0]
-    const end = raw.lastIndexOf(quote)
-    return end > 0 ? raw.slice(1, end) : null
+function propertyNameText(name) {
+  if (!name) return null
+  if (ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name)) return name.text
+  return null
+}
+
+function literalValue(node) {
+  if (!node) return null
+  if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return node.text
+  if (ts.isNumericLiteral(node)) return Number(node.text)
+  if (node.kind === ts.SyntaxKind.TrueKeyword) return true
+  if (node.kind === ts.SyntaxKind.FalseKeyword) return false
+  if (ts.isPrefixUnaryExpression(node) && ts.isNumericLiteral(node.operand)) {
+    const value = Number(node.operand.text)
+    if (node.operator === ts.SyntaxKind.MinusToken) return -value
+    if (node.operator === ts.SyntaxKind.PlusToken) return value
   }
-  return raw
+  return null
+}
+
+function objectLiteralFields(node) {
+  const fields = new Map()
+  for (const property of node.properties) {
+    if (!ts.isPropertyAssignment(property)) continue
+    const key = propertyNameText(property.name)
+    if (!key) continue
+    const value = literalValue(property.initializer)
+    if (value !== null) fields.set(key, value)
+  }
+  return fields
 }
 
 const lessons = new Map()
 const quizzes = new Map()
+const sourceStats = []
 
 for (const relativePath of sources) {
-  const source = fs.readFileSync(path.join(root, relativePath), 'utf8')
-  const idMatches = [...source.matchAll(/\\bid:\\s*['"][^'"]+['"]/g)]
-  for (let index = 0; index < idMatches.length; index += 1) {
-    const start = idMatches[index].index ?? 0
-    const end = idMatches[index + 1]?.index ?? source.length
-    const block = source.slice(start, end)
-    const id = readValue(block, 'id')
-    const subject = readValue(block, 'subject')
-    if (!id || !subject) continue
+  const absolutePath = path.join(root, relativePath)
+  if (!fs.existsSync(absolutePath)) throw new Error(`Learning-index source missing: ${relativePath}`)
 
-    const lessonId = readValue(block, 'lessonId')
-    if (lessonId) {
-      if (!quizzes.has(id)) quizzes.set(id, { id, subject, lessonId })
-      continue
+  const sourceText = fs.readFileSync(absolutePath, 'utf8')
+  const sourceFile = ts.createSourceFile(relativePath, sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
+  let lessonObjects = 0
+  let quizObjects = 0
+
+  function visit(node) {
+    if (ts.isObjectLiteralExpression(node)) {
+      const fields = objectLiteralFields(node)
+      const id = fields.get('id')
+      const subject = fields.get('subject')
+      if (typeof id === 'string' && typeof subject === 'string') {
+        const lessonId = fields.get('lessonId')
+        if (typeof lessonId === 'string') {
+          quizObjects += 1
+          if (!quizzes.has(id)) quizzes.set(id, { id, subject, lessonId })
+        } else {
+          const title = fields.get('title')
+          const order = fields.get('order')
+          if (typeof title === 'string' && typeof order === 'number' && Number.isFinite(order)) {
+            lessonObjects += 1
+            if (!lessons.has(id)) lessons.set(id, { id, subject, title, order })
+          }
+        }
+      }
     }
-
-    const title = readValue(block, 'title')
-    const orderRaw = readValue(block, 'order')
-    const order = Number(orderRaw)
-    if (!title || !Number.isFinite(order)) continue
-    if (!lessons.has(id)) lessons.set(id, { id, subject, title, order })
+    ts.forEachChild(node, visit)
   }
+
+  visit(sourceFile)
+  sourceStats.push({ source: relativePath, lessons: lessonObjects, questions: quizObjects })
+}
+
+if (lessons.size < 10 || quizzes.size < 10) {
+  throw new Error(`Learning index extraction is implausibly small: ${lessons.size} lessons, ${quizzes.size} questions`)
+}
+
+const missingLessonRefs = [...quizzes.values()]
+  .filter((question) => !lessons.has(question.lessonId))
+  .map((question) => `${question.id}->${question.lessonId}`)
+
+if (missingLessonRefs.length) {
+  throw new Error(`Learning index contains question references to missing lessons: ${missingLessonRefs.slice(0, 10).join(', ')}`)
 }
 
 const quizCounts = new Map()
@@ -67,7 +111,7 @@ const lessonIndex = [...lessons.values()]
 
 const worldStats = {}
 for (const lesson of lessonIndex) {
-  const key = lesson.subject.toLowerCase().replace(/\\s+/g, '-')
+  const key = lesson.subject.toLowerCase().replace(/\s+/g, '-')
   worldStats[key] ??= { lessonCount: 0, quizCount: 0 }
   worldStats[key].lessonCount += 1
   worldStats[key].quizCount += lesson.quizQuestions
@@ -78,3 +122,6 @@ const generated = `// AUTO-GENERATED by scripts/generate-learning-index.mjs. Do 
 const output = path.join(root, 'src/content/learningIndex.generated.ts')
 fs.writeFileSync(output, generated)
 console.log(`Generated learning index: ${lessonIndex.length} lessons, ${quizzes.size} questions`)
+for (const stat of sourceStats.filter((item) => item.lessons || item.questions)) {
+  console.log(`  ${stat.source}: ${stat.lessons} lessons, ${stat.questions} questions`)
+}
