@@ -28,7 +28,7 @@ async function call(path, init = {}, env = baseEnv) {
   assert.equal(body.previewEnabled, false)
   assert.equal(body.realChildDataAllowed, false)
   assert.equal(body.browserDirectDatabaseAccessAllowed, false)
-  assert.equal(body.authenticationBoundary, 'fail-closed-verifier-required')
+  assert.equal(body.authenticationBoundary, 'jwks-signature-verification-fail-closed')
   assert.equal(body.persistenceState, 'not-connected')
 }
 
