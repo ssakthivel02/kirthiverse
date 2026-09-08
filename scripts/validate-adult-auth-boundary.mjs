@@ -11,6 +11,10 @@ const env = {
   KVS_AUTH_ISSUER: 'https://identity.example.test',
   KVS_AUTH_AUDIENCE: 'kirthiverse-preview',
 }
+const policy = {
+  issuer: env.KVS_AUTH_ISSUER,
+  audience: env.KVS_AUTH_AUDIENCE,
+}
 
 const baseClaims = {
   iss: env.KVS_AUTH_ISSUER,
@@ -33,32 +37,32 @@ function expectAuthError(fn, code, status) {
 }
 
 expectAuthError(
-  () => validateVerifiedClaims({ ...baseClaims, iss: 'https://wrong.example' }, env, now),
+  () => validateVerifiedClaims({ ...baseClaims, iss: 'https://wrong.example' }, policy, now),
   'issuer_mismatch',
   401,
 )
 expectAuthError(
-  () => validateVerifiedClaims({ ...baseClaims, aud: 'wrong-audience' }, env, now),
+  () => validateVerifiedClaims({ ...baseClaims, aud: 'wrong-audience' }, policy, now),
   'audience_mismatch',
   401,
 )
 expectAuthError(
-  () => validateVerifiedClaims({ ...baseClaims, exp: now - 1 }, env, now),
+  () => validateVerifiedClaims({ ...baseClaims, exp: now - 1 }, policy, now),
   'token_expired',
   401,
 )
 expectAuthError(
-  () => validateVerifiedClaims({ ...baseClaims, kvs_account_type: 'learner' }, env, now),
+  () => validateVerifiedClaims({ ...baseClaims, kvs_account_type: 'learner' }, policy, now),
   'adult_account_required',
   403,
 )
 expectAuthError(
-  () => validateVerifiedClaims({ ...baseClaims, kvs_role: 'teacher' }, env, now),
+  () => validateVerifiedClaims({ ...baseClaims, kvs_role: 'teacher' }, policy, now),
   'tenant_context_required',
   403,
 )
 
-const guardian = validateVerifiedClaims(baseClaims, env, now)
+const guardian = validateVerifiedClaims(baseClaims, policy, now)
 assert.deepEqual(guardian, {
   subject: 'adult-subject-001',
   role: 'guardian',
@@ -75,7 +79,7 @@ const teacherClaims = {
   kvs_role: 'teacher',
   kvs_tenant_id: 'school-preview-001',
 }
-const teacher = validateVerifiedClaims(teacherClaims, env, now)
+const teacher = validateVerifiedClaims(teacherClaims, policy, now)
 assert.equal(teacher.tenantId, 'school-preview-001')
 
 const request = new Request('https://api.example.test/api/v1/identity/whoami', {
