@@ -23,6 +23,7 @@
     "validate:ops": "node scripts/validate-release-contract.mjs",
     "validate:runtime": "node scripts/validate-release-contract.mjs",
     "validate:identity": "node scripts/validate-public-identity.mjs",
+    "validate:cloud-identity": "node scripts/validate-cloud-identity-preview.mjs",
     "validate:dist": "node scripts/validate-dist.mjs",
     "validate:bundle": "node scripts/validate-bundle-budget.mjs",
     "package:preview": "node scripts/create-local-preview-package.mjs",
@@ -33,7 +34,7 @@
     "type-check": "tsc --noEmit",
     "prelint": "pnpm run generate:learning-index",
     "lint": "eslint src --ext .ts,.tsx",
-    "check": "pnpm run validate:content && pnpm run validate:kvs-supplement && pnpm run validate:experience && pnpm run validate:trust && pnpm run validate:data && pnpm run validate:a11y && pnpm run validate:identity && pnpm run validate:contract && pnpm run type-check && pnpm run lint && pnpm run build && pnpm run validate:dist",
+    "check": "pnpm run validate:content && pnpm run validate:kvs-supplement && pnpm run validate:experience && pnpm run validate:trust && pnpm run validate:data && pnpm run validate:a11y && pnpm run validate:identity && pnpm run validate:cloud-identity && pnpm run validate:contract && pnpm run type-check && pnpm run lint && pnpm run build && pnpm run validate:dist",
     "format": "prettier --write ."
   },
   "dependencies": {
