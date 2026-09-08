@@ -28,21 +28,37 @@ async function call(path, init = {}, env = baseEnv) {
   assert.equal(body.previewEnabled, false)
   assert.equal(body.realChildDataAllowed, false)
   assert.equal(body.browserDirectDatabaseAccessAllowed, false)
+  assert.equal(body.authenticationBoundary, 'fail-closed-verifier-required')
   assert.equal(body.persistenceState, 'not-connected')
 }
 
 {
-  const response = await call('/api/v1/identity/me')
+  const response = await call('/api/v1/identity/whoami')
   assert.equal(response.status, 503)
   const body = await response.json()
   assert.equal(body.code, 'preview_disabled')
 }
 
 {
-  const response = await call('/api/v1/identity/me', {}, { ...baseEnv, KVS_CLOUD_IDENTITY_PREVIEW: 'true' })
-  assert.equal(response.status, 501)
+  const response = await call('/api/v1/identity/whoami', {}, {
+    ...baseEnv,
+    KVS_CLOUD_IDENTITY_PREVIEW: 'true',
+  })
+  assert.equal(response.status, 401)
   const body = await response.json()
-  assert.equal(body.code, 'protected_route_not_enabled')
+  assert.equal(body.code, 'missing_or_invalid_bearer_token')
+}
+
+{
+  const response = await call('/api/v1/identity/whoami', {
+    headers: { authorization: 'Bearer synthetic-token' },
+  }, {
+    ...baseEnv,
+    KVS_CLOUD_IDENTITY_PREVIEW: 'true',
+  })
+  assert.equal(response.status, 503)
+  const body = await response.json()
+  assert.equal(body.code, 'auth_verifier_not_configured')
 }
 
 {
