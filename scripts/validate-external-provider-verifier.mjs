@@ -63,7 +63,8 @@ const claims = {
   exp: now + 600,
   iat: now,
   kvs_account_type: 'adult',
-  kvs_role: 'guardian',
+  kvs_role: 'platform_admin',
+  kvs_tenant_id: 'provider-controlled-tenant',
 }
 
 const key1 = await createRsaKey('key-1')
@@ -141,9 +142,25 @@ const env = {
 const request = new Request('https://api.example.test/api/v1/identity/whoami', {
   headers: { authorization: `Bearer ${token1}` },
 })
-const context = await authenticateAdultRequest(request, env, { fetchImpl: fetchStable, nowSeconds: now })
-assert.equal(context.subject, claims.sub)
+const trustedResolveActor = async (identity) => {
+  assert.equal(identity.subject, claims.sub)
+  assert.equal(identity.providerIssuer, issuer)
+  return {
+    actorId: 'kvs_guardian_000001',
+    accountType: 'adult',
+    role: 'guardian',
+    tenantId: null,
+  }
+}
+const context = await authenticateAdultRequest(request, env, {
+  fetchImpl: fetchStable,
+  nowSeconds: now,
+  resolveActor: trustedResolveActor,
+})
+assert.equal(context.actorId, 'kvs_guardian_000001')
 assert.equal(context.role, 'guardian')
+assert.equal(context.tenantId, null)
+assert.notEqual(context.role, claims.kvs_role, 'provider-controlled role claim must not grant application privilege')
 
 const futureToken = await signJwt(key1.privateKey, { alg: 'RS256', typ: 'JWT', kid: 'key-1' }, {
   ...claims,
@@ -153,7 +170,7 @@ await assert.rejects(
   () => authenticateAdultRequest(
     new Request('https://api.example.test/', { headers: { authorization: `Bearer ${futureToken}` } }),
     env,
-    { fetchImpl: fetchStable, nowSeconds: now },
+    { fetchImpl: fetchStable, nowSeconds: now, resolveActor: trustedResolveActor },
   ),
   (error) => error instanceof AuthError && error.code === 'token_issued_in_future',
 )
