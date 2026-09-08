@@ -1,3 +1,5 @@
+import { AuthError, authenticateAdultRequest } from './auth.mjs'
+
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' }
 
 function json(body, init = {}) {
@@ -47,17 +49,18 @@ function statusPayload(env, id) {
   return {
     ok: true,
     service: 'kirthiverse-cloud-identity-api-preview',
-    version: '1.0.0-preview',
+    version: '1.1.0-preview',
     requestId: id,
     previewEnabled: previewEnabled(env),
     realChildDataAllowed: false,
     browserDirectDatabaseAccessAllowed: false,
     authenticationMode: 'adult-owned-external-provider',
+    authenticationBoundary: 'fail-closed-verifier-required',
     persistenceState: 'not-connected',
   }
 }
 
-function protectedPreviewRoute(request, env, id) {
+async function protectedPreviewRoute(request, env, id, pathname) {
   if (!previewEnabled(env)) {
     return json({
       ok: false,
@@ -67,12 +70,37 @@ function protectedPreviewRoute(request, env, id) {
     }, { status: 503 })
   }
 
-  return json({
-    ok: false,
-    code: 'protected_route_not_enabled',
-    requestId: id,
-    message: 'Adult authentication and persistence adapters are not enabled in this release slice.',
-  }, { status: 501 })
+  try {
+    const context = await authenticateAdultRequest(request, env)
+
+    if (request.method === 'GET' && pathname === '/api/v1/identity/whoami') {
+      return json({
+        ok: true,
+        requestId: id,
+        adult: {
+          subject: context.subject,
+          role: context.role,
+          tenantId: context.tenantId,
+        },
+        persistenceState: 'not-connected',
+      })
+    }
+
+    return json({
+      ok: false,
+      code: 'identity_route_not_implemented',
+      requestId: id,
+    }, { status: 501 })
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return json({
+        ok: false,
+        code: error.code,
+        requestId: id,
+      }, { status: error.status })
+    }
+    throw error
+  }
 }
 
 export default {
@@ -91,7 +119,7 @@ export default {
     } else if (request.method === 'GET' && url.pathname === '/api/v1/status') {
       response = json(statusPayload(env, id))
     } else if (url.pathname.startsWith('/api/v1/identity/')) {
-      response = protectedPreviewRoute(request, env, id)
+      response = await protectedPreviewRoute(request, env, id, url.pathname)
     } else {
       response = json({ ok: false, code: 'not_found', requestId: id }, { status: 404 })
     }
