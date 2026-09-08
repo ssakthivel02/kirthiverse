@@ -6,7 +6,11 @@
       "startServerReadyTimeout": 30000,
       "url": [
         "http://127.0.0.1:4173/",
-        "http://127.0.0.1:4173/learning-worlds"
+        "http://127.0.0.1:4173/learning-worlds",
+        "http://127.0.0.1:4173/search",
+        "http://127.0.0.1:4173/ai-tutor",
+        "http://127.0.0.1:4173/teacher-resources",
+        "http://127.0.0.1:4173/help"
       ],
       "numberOfRuns": 2,
       "settings": {

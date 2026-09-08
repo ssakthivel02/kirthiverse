@@ -52,7 +52,7 @@ const LearningNotes = withLearningRuntime(() => import('../pages/LearningNotes')
 
 function RouteLoadingFallback() {
   return (
-    <main className="mx-auto flex min-h-[50vh] w-full max-w-7xl items-center justify-center px-4 py-12" aria-live="polite" aria-busy="true">
+    <main className="mx-auto flex min-h-[calc(100vh-4.5rem)] w-full max-w-7xl items-center justify-center px-4 py-12" aria-live="polite" aria-busy="true">
       <div className="rounded-2xl border border-slate-200 bg-white px-6 py-5 text-center shadow-sm">
         <p className="font-semibold text-slate-900">Loading KirthiVerse…</p>
         <p className="mt-1 text-sm text-slate-600">Preparing this learning space on your device.</p>
