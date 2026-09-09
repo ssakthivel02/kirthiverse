@@ -49,14 +49,16 @@ function statusPayload(env, id) {
   return {
     ok: true,
     service: 'kirthiverse-cloud-identity-api-preview',
-    version: '1.2.0-preview',
+    version: '1.3.0-preview',
     requestId: id,
     previewEnabled: previewEnabled(env),
     realChildDataAllowed: false,
     browserDirectDatabaseAccessAllowed: false,
     authenticationMode: 'adult-owned-external-provider',
-    authenticationBoundary: 'jwks-signature-verification-fail-closed',
+    authenticationBoundary: 'verified-identity-plus-trusted-app-role-resolution',
     externalProviderVerifierConfigured: Boolean(env.KVS_AUTH_JWKS_URL && env.KVS_AUTH_ISSUER && env.KVS_AUTH_AUDIENCE),
+    trustedActorResolverConfigured: typeof env.KVS_AUTH_RESOLVE_ACTOR === 'function',
+    rawProviderSubjectExposed: false,
     persistenceState: 'not-connected',
   }
 }
@@ -79,7 +81,7 @@ async function protectedPreviewRoute(request, env, id, pathname) {
         ok: true,
         requestId: id,
         adult: {
-          subject: context.subject,
+          actorId: context.actorId,
           role: context.role,
           tenantId: context.tenantId,
         },

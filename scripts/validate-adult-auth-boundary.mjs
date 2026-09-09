@@ -3,7 +3,8 @@ import {
   AuthError,
   authenticateAdultRequest,
   requireRole,
-  validateVerifiedClaims,
+  validateResolvedActor,
+  validateVerifiedIdentityClaims,
 } from '../workers/kirthiverse-api-preview/src/auth.mjs'
 
 const now = 2_000_000_000
@@ -21,8 +22,6 @@ const baseClaims = {
   aud: env.KVS_AUTH_AUDIENCE,
   sub: 'adult-subject-001',
   exp: now + 600,
-  kvs_account_type: 'adult',
-  kvs_role: 'guardian',
 }
 
 function expectAuthError(fn, code, status) {
@@ -37,50 +36,51 @@ function expectAuthError(fn, code, status) {
 }
 
 expectAuthError(
-  () => validateVerifiedClaims({ ...baseClaims, iss: 'https://wrong.example' }, policy, now),
+  () => validateVerifiedIdentityClaims({ ...baseClaims, iss: 'https://wrong.example' }, policy, now),
   'issuer_mismatch',
   401,
 )
 expectAuthError(
-  () => validateVerifiedClaims({ ...baseClaims, aud: 'wrong-audience' }, policy, now),
+  () => validateVerifiedIdentityClaims({ ...baseClaims, aud: 'wrong-audience' }, policy, now),
   'audience_mismatch',
   401,
 )
 expectAuthError(
-  () => validateVerifiedClaims({ ...baseClaims, exp: now - 1 }, policy, now),
+  () => validateVerifiedIdentityClaims({ ...baseClaims, exp: now - 1 }, policy, now),
   'token_expired',
   401,
 )
-expectAuthError(
-  () => validateVerifiedClaims({ ...baseClaims, kvs_account_type: 'learner' }, policy, now),
-  'adult_account_required',
-  403,
-)
-expectAuthError(
-  () => validateVerifiedClaims({ ...baseClaims, kvs_role: 'teacher' }, policy, now),
-  'tenant_context_required',
-  403,
-)
 
-const guardian = validateVerifiedClaims(baseClaims, policy, now)
-assert.deepEqual(guardian, {
+const identity = validateVerifiedIdentityClaims(baseClaims, policy, now)
+assert.deepEqual(identity, {
   subject: 'adult-subject-001',
-  role: 'guardian',
-  tenantId: null,
   providerIssuer: env.KVS_AUTH_ISSUER,
   authenticationTime: null,
+})
+
+const guardian = validateResolvedActor({
+  actorId: 'kvs_actor_guardian001',
+  accountType: 'adult',
+  role: 'guardian',
+})
+assert.deepEqual(guardian, {
+  actorId: 'kvs_actor_guardian001',
+  role: 'guardian',
+  tenantId: null,
 })
 requireRole(guardian, ['guardian'])
 expectAuthError(() => requireRole(guardian, ['teacher']), 'forbidden', 403)
 
-const teacherClaims = {
-  ...baseClaims,
-  sub: 'adult-subject-002',
-  kvs_role: 'teacher',
-  kvs_tenant_id: 'school-preview-001',
-}
-const teacher = validateVerifiedClaims(teacherClaims, policy, now)
-assert.equal(teacher.tenantId, 'school-preview-001')
+expectAuthError(
+  () => validateResolvedActor({ actorId: 'kvs_actor_teacher001', accountType: 'adult', role: 'teacher' }),
+  'tenant_context_required',
+  403,
+)
+expectAuthError(
+  () => validateResolvedActor({ actorId: 'kvs_actor_learner001', accountType: 'learner', role: 'guardian' }),
+  'adult_account_required',
+  403,
+)
 
 const request = new Request('https://api.example.test/api/v1/identity/whoami', {
   headers: { authorization: 'Bearer synthetic-signed-token' },
@@ -91,8 +91,19 @@ const authenticated = await authenticateAdultRequest(request, env, {
     assert.equal(token, 'synthetic-signed-token')
     return baseClaims
   },
+  resolveActor: async ({ subject, providerIssuer }) => {
+    assert.equal(subject, baseClaims.sub)
+    assert.equal(providerIssuer, baseClaims.iss)
+    return {
+      actorId: 'kvs_actor_guardian001',
+      accountType: 'adult',
+      role: 'guardian',
+      tenantId: null,
+    }
+  },
 })
-assert.equal(authenticated.subject, baseClaims.sub)
+assert.equal(authenticated.actorId, 'kvs_actor_guardian001')
+assert.equal('subject' in authenticated, false)
 
 await assert.rejects(
   () => authenticateAdultRequest(new Request('https://api.example.test/'), env, { verifyToken: async () => baseClaims }),
@@ -101,6 +112,10 @@ await assert.rejects(
 await assert.rejects(
   () => authenticateAdultRequest(request, env),
   (error) => error instanceof AuthError && error.code === 'auth_verifier_not_configured' && error.status === 503,
+)
+await assert.rejects(
+  () => authenticateAdultRequest(request, env, { verifyToken: async () => baseClaims }),
+  (error) => error instanceof AuthError && error.code === 'actor_resolver_not_configured' && error.status === 503,
 )
 
 console.log('Adult authentication boundary validation passed')

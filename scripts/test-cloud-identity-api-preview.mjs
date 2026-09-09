@@ -28,7 +28,9 @@ async function call(path, init = {}, env = baseEnv) {
   assert.equal(body.previewEnabled, false)
   assert.equal(body.realChildDataAllowed, false)
   assert.equal(body.browserDirectDatabaseAccessAllowed, false)
-  assert.equal(body.authenticationBoundary, 'jwks-signature-verification-fail-closed')
+  assert.equal(body.authenticationBoundary, 'verified-identity-plus-trusted-app-role-resolution')
+  assert.equal(body.trustedActorResolverConfigured, false)
+  assert.equal(body.rawProviderSubjectExposed, false)
   assert.equal(body.persistenceState, 'not-connected')
 }
 
@@ -59,6 +61,41 @@ async function call(path, init = {}, env = baseEnv) {
   assert.equal(response.status, 503)
   const body = await response.json()
   assert.equal(body.code, 'auth_verifier_not_configured')
+}
+
+{
+  const now = Math.floor(Date.now() / 1000)
+  const providerSubject = 'provider-subject-must-not-leak'
+  const response = await call('/api/v1/identity/whoami', {
+    headers: { authorization: 'Bearer synthetic-verified-token' },
+  }, {
+    ...baseEnv,
+    KVS_CLOUD_IDENTITY_PREVIEW: 'true',
+    KVS_AUTH_ISSUER: 'https://identity.example.test',
+    KVS_AUTH_AUDIENCE: 'kirthiverse-preview',
+    KVS_AUTH_VERIFY_TOKEN: async () => ({
+      iss: 'https://identity.example.test',
+      aud: 'kirthiverse-preview',
+      sub: providerSubject,
+      exp: now + 600,
+    }),
+    KVS_AUTH_RESOLVE_ACTOR: async ({ subject }) => {
+      assert.equal(subject, providerSubject)
+      return {
+        actorId: 'kvs_actor_guardian001',
+        accountType: 'adult',
+        role: 'guardian',
+        tenantId: null,
+      }
+    },
+  })
+  assert.equal(response.status, 200)
+  const body = await response.json()
+  assert.equal(body.adult.actorId, 'kvs_actor_guardian001')
+  assert.equal(body.adult.role, 'guardian')
+  assert.equal(body.adult.tenantId, null)
+  assert.equal(JSON.stringify(body).includes(providerSubject), false)
+  assert.equal('subject' in body.adult, false)
 }
 
 {
