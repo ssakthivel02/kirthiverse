@@ -38,6 +38,7 @@
     "validate:rate-limiting-abuse": "node scripts/validate-rate-limiting-abuse-boundary.mjs",
     "validate:production-config-security": "node scripts/validate-production-secrets-configuration-boundary.mjs",
     "validate:restricted-persistence": "node scripts/validate-restricted-database-network-persistence-boundary.mjs",
+    "validate:persistence-authorization-gate": "node scripts/validate-persistence-authorization-gate.mjs",
     "validate:dist": "node scripts/validate-dist.mjs",
     "validate:bundle": "node scripts/validate-bundle-budget.mjs",
     "package:preview": "node scripts/create-local-preview-package.mjs",
@@ -48,7 +49,7 @@
     "type-check": "tsc --noEmit",
     "prelint": "pnpm run generate:learning-index",
     "lint": "eslint src --ext .ts,.tsx",
-    "check": "pnpm run validate:content && pnpm run validate:kvs-supplement && pnpm run validate:experience && pnpm run validate:trust && pnpm run validate:data && pnpm run validate:a11y && pnpm run validate:identity && pnpm run validate:cloud-identity && pnpm run test:cloud-identity-api && pnpm run validate:adult-auth && pnpm run validate:external-verifier && pnpm run validate:trusted-role-resolver && pnpm run validate:guardian-consent && pnpm run validate:tenant-isolation && pnpm run validate:encryption-boundary && pnpm run validate:session-security && pnpm run validate:audit-boundary && pnpm run validate:audit-integrity-hardening && pnpm run validate:data-lifecycle-boundary && pnpm run validate:rate-limiting-abuse && pnpm run validate:production-config-security && pnpm run validate:restricted-persistence && pnpm run validate:contract && pnpm run type-check && pnpm run lint && pnpm run build && pnpm run validate:dist",
+    "check": "pnpm run validate:content && pnpm run validate:kvs-supplement && pnpm run validate:experience && pnpm run validate:trust && pnpm run validate:data && pnpm run validate:a11y && pnpm run validate:identity && pnpm run validate:cloud-identity && pnpm run test:cloud-identity-api && pnpm run validate:adult-auth && pnpm run validate:external-verifier && pnpm run validate:trusted-role-resolver && pnpm run validate:guardian-consent && pnpm run validate:tenant-isolation && pnpm run validate:encryption-boundary && pnpm run validate:session-security && pnpm run validate:audit-boundary && pnpm run validate:audit-integrity-hardening && pnpm run validate:data-lifecycle-boundary && pnpm run validate:rate-limiting-abuse && pnpm run validate:production-config-security && pnpm run validate:restricted-persistence && pnpm run validate:persistence-authorization-gate && pnpm run validate:contract && pnpm run type-check && pnpm run lint && pnpm run build && pnpm run validate:dist",
     "format": "prettier --write ."
   },
   "dependencies": {
