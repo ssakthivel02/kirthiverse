@@ -19,7 +19,13 @@ const ALLOWED_ACTIONS = new Set([
   'sensitive.encrypt',
   'sensitive.decrypt',
   'export.requested',
+  'export.allowed',
+  'export.denied',
+  'export.completed',
   'deletion.requested',
+  'deletion.allowed',
+  'deletion.denied',
+  'deletion.completed',
   'admin.breakglass.denied',
 ])
 const ALLOWED_OUTCOMES = new Set(['allowed', 'denied', 'recorded'])
