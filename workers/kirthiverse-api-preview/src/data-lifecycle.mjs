@@ -24,6 +24,17 @@ const TRANSITIONS = Object.freeze({
   rejected: new Set(),
 })
 
+const AUDIT_SUFFIX = Object.freeze({
+  'export.requested': 'exp_req',
+  'export.allowed': 'exp_allow',
+  'export.denied': 'exp_deny',
+  'export.completed': 'exp_done',
+  'deletion.requested': 'del_req',
+  'deletion.allowed': 'del_allow',
+  'deletion.denied': 'del_deny',
+  'deletion.completed': 'del_done',
+})
+
 export class DataLifecycleError extends Error {
   constructor(code, status = 403) {
     super(code)
@@ -69,7 +80,9 @@ function assertNoClientBypassHints(input) {
 
 async function audit(action, actor, request, outcome, reasonCode, options = {}) {
   const now = options.nowMs ?? Date.now()
-  const eventId = options.auditEventId || `evt_${request.requestId.slice(4)}_audit01`
+  const suffix = AUDIT_SUFFIX[action]
+  if (!suffix) throw new DataLifecycleError('lifecycle_audit_action_invalid', 500)
+  const eventId = options.auditEventId || `evt_${request.requestId.slice(4, 64)}_${suffix}`
   const requestId = options.auditRequestId || `req:${request.requestId}`
   const correlationId = options.correlationId || `corr:${request.requestId}`
   return recordSecurityAuditEvent({
@@ -90,7 +103,7 @@ async function audit(action, actor, request, outcome, reasonCode, options = {}) 
     metadata: { requestType: request.requestType },
   }, {
     mandatory: true,
-    trustedContext: actor,
+    trustedContext: { actorId: actor.actorId, actorRole: actor.role, tenantId: actor.tenantId },
     writeAuditEvent: options.writeAuditEvent,
     previousEventHash: options.previousEventHash,
     nowMs: now,
