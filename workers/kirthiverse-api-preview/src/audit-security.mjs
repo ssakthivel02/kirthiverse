@@ -26,6 +26,7 @@ const ALLOWED_ACTIONS = new Set([
   'deletion.allowed',
   'deletion.denied',
   'deletion.completed',
+  'rate_limit.denied',
   'admin.breakglass.denied',
 ])
 const ALLOWED_OUTCOMES = new Set(['allowed', 'denied', 'recorded'])
