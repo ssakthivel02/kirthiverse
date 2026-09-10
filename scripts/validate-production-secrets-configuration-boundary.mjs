@@ -40,7 +40,7 @@ expectConfigError('config_allowed_origins_invalid', () => validateTrustedServerC
   KVS_ALLOWED_ORIGINS: 'https://kirthiverse.omsaravanabhava.org/path',
 }, { trustedServer: true }))
 expectConfigError('encryption_key_version_required', () => validateTrustedServerConfiguration({
-  KVS_ENCRYPTION_KEY_MATERIAL: 'synthetic-key-material-1234567890',
+  KVS_ENCRYPTION_KEY_MATERIAL: 'preview-only-key-material-1234567890',
 }, { trustedServer: true }))
 expectConfigError('production_auth_configuration_required', () => validateTrustedServerConfiguration({
   KVS_ENVIRONMENT: 'production',
@@ -52,7 +52,16 @@ expectConfigError('config_encryption_key_material_placeholder_rejected', () => v
   KVS_AUTH_AUDIENCE: 'kirthiverse',
   KVS_ENCRYPTION_KEY_VERSION: 'v1',
   KVS_ENCRYPTION_KEY_MATERIAL: 'placeholder-secret-value',
-  KVS_RATE_LIMIT_SALT: 'synthetic-prod-rate-limit-salt-value',
+  KVS_RATE_LIMIT_SALT: 'Q2hBTmdFMlRoaXNGaXJzdFNhbHRWYWx1ZQ',
+}, { trustedServer: true }))
+expectConfigError('config_rate_limit_salt_placeholder_rejected', () => validateTrustedServerConfiguration({
+  KVS_ENVIRONMENT: 'production',
+  KVS_AUTH_JWKS_URL: 'https://id.example.com/jwks.json',
+  KVS_AUTH_ISSUER: 'https://id.example.com/',
+  KVS_AUTH_AUDIENCE: 'kirthiverse',
+  KVS_ENCRYPTION_KEY_VERSION: 'v1',
+  KVS_ENCRYPTION_KEY_MATERIAL: 'Rk9SQk9VTkRBUllWQUxJREFUSU9OT05MWQ',
+  KVS_RATE_LIMIT_SALT: 'synthetic-production-salt-value',
 }, { trustedServer: true }))
 
 const production = validateTrustedServerConfiguration({
@@ -63,8 +72,8 @@ const production = validateTrustedServerConfiguration({
   KVS_AUTH_ISSUER: 'https://id.example.com/',
   KVS_AUTH_AUDIENCE: 'kirthiverse-web',
   KVS_ENCRYPTION_KEY_VERSION: 'kms-key-v7',
-  KVS_ENCRYPTION_KEY_MATERIAL: 'synthetic-production-key-material-1234567890',
-  KVS_RATE_LIMIT_SALT: 'synthetic-production-rate-limit-salt-1234567890',
+  KVS_ENCRYPTION_KEY_MATERIAL: 'Rk9SQk9VTkRBUllWQUxJREFUSU9OT05MWQ',
+  KVS_RATE_LIMIT_SALT: 'Q2hBTmdFMlRoaXNGaXJzdFNhbHRWYWx1ZQ',
 }, { trustedServer: true })
 assert.equal(production.environment, 'production')
 assert.equal(production.auth.audience, 'kirthiverse-web')
@@ -92,6 +101,7 @@ assert.equal(contract.clientConfigurationOverridesAllowed, false)
 assert.equal(contract.browserSecretExposureAllowed, false)
 assert.equal(contract.browserDatabaseCredentialsAllowed, false)
 assert.equal(contract.productionPlaceholderSecretsAllowed, false)
+assert.equal(contract.productionSyntheticSecretsAllowed, false)
 assert.equal(contract.liveSecretsManagerConfigured, false)
 assert.equal(contract.liveKmsConfigured, false)
 assert.equal(contract.liveProductionSecretsProvisioned, false)
