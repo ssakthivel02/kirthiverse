@@ -178,9 +178,18 @@ assert.equal(rateLimitResponseHeaders(retryError)['retry-after'], '300')
 
 const rapidBackend = makeAtomicPreviewBackend()
 const rapidResults = []
+const rapidInput = {
+  policyId: 'learner_sync',
+  actorId: actorB.actorId,
+  requestId: 'req_rate_limit_rapid_0001',
+  correlationId: 'corr_rate_limit_rapid_0001',
+  auditEventId: 'evt_rate_limit_rapid_0001',
+  occurredAt: new Date(now).toISOString(),
+  recordedAt: new Date(now).toISOString(),
+}
 for (let i = 0; i < 61; i += 1) {
   try {
-    rapidResults.push(await enforceRateLimit({ policyId: 'learner_sync', actorId: actorB.actorId }, {
+    rapidResults.push(await enforceRateLimit(rapidInput, {
       keySalt,
       trustedActor: actorB,
       consumeRateLimit: rapidBackend.consume,
