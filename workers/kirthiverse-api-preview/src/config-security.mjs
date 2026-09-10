@@ -4,7 +4,8 @@ const FORBIDDEN_CLIENT_HINTS = new Set([
   'environment', 'configEnvironment', 'secret', 'secrets', 'databaseUrl', 'dbPassword',
   'keyMaterial', 'rateLimitSalt', 'authIssuer', 'authAudience', 'authJwksUrl',
 ])
-const PLACEHOLDER_PATTERN = /^(?:changeme|change-me|placeholder|example|example-secret|default|secret|test|testing|dev|development|preview|sample|dummy|todo|replace-me|replace_me)$/i
+const PLACEHOLDER_PATTERN = /^(?:changeme|change-me|placeholder|example|example-secret|default|secret|test|testing|dev|development|preview|sample|dummy|synthetic|todo|replace-me|replace_me)$/i
+const PLACEHOLDER_FRAGMENT_PATTERN = /(?:placeholder|changeme|replace[-_ ]?me|example-secret|dummy-secret|synthetic|test-secret|sample-secret)/i
 const MAX_VALUE_LENGTH = 8192
 
 export class ConfigSecurityError extends Error {
@@ -39,10 +40,8 @@ function rejectClientOverrides(clientInput = {}) {
 
 function validateSecretValue(name, value, environment) {
   const secret = boundedString(value, `config_${name.toLowerCase()}_invalid`, { min: 16 })
-  if (environment === 'production') {
-    if (PLACEHOLDER_PATTERN.test(secret) || /(?:placeholder|changeme|replace[-_ ]?me|example-secret|dummy-secret)/i.test(secret)) {
-      throw new ConfigSecurityError(`config_${name.toLowerCase()}_placeholder_rejected`)
-    }
+  if (environment === 'production' && (PLACEHOLDER_PATTERN.test(secret) || PLACEHOLDER_FRAGMENT_PATTERN.test(secret))) {
+    throw new ConfigSecurityError(`config_${name.toLowerCase()}_placeholder_rejected`)
   }
   return secret
 }
@@ -132,6 +131,7 @@ export function configurationSecurityContract() {
     browserSecretExposureAllowed: false,
     browserDatabaseCredentialsAllowed: false,
     productionPlaceholderSecretsAllowed: false,
+    productionSyntheticSecretsAllowed: false,
     secretValuesAllowedInLogsAuditOrErrors: false,
     keyVersionSeparatedFromKeyMaterial: true,
     productionSecuritySensitiveMissingConfigFailureMode: 'closed',
