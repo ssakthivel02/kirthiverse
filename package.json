@@ -31,6 +31,7 @@
     "validate:guardian-consent": "node scripts/validate-guardian-consent-ledger.mjs",
     "validate:tenant-isolation": "node scripts/validate-tenant-isolation-boundary.mjs",
     "validate:encryption-boundary": "node scripts/validate-encryption-key-boundary.mjs",
+    "validate:session-security": "node scripts/validate-session-revocation-replay-boundary.mjs",
     "validate:dist": "node scripts/validate-dist.mjs",
     "validate:bundle": "node scripts/validate-bundle-budget.mjs",
     "package:preview": "node scripts/create-local-preview-package.mjs",
@@ -41,7 +42,7 @@
     "type-check": "tsc --noEmit",
     "prelint": "pnpm run generate:learning-index",
     "lint": "eslint src --ext .ts,.tsx",
-    "check": "pnpm run validate:content && pnpm run validate:kvs-supplement && pnpm run validate:experience && pnpm run validate:trust && pnpm run validate:data && pnpm run validate:a11y && pnpm run validate:identity && pnpm run validate:cloud-identity && pnpm run test:cloud-identity-api && pnpm run validate:adult-auth && pnpm run validate:external-verifier && pnpm run validate:trusted-role-resolver && pnpm run validate:guardian-consent && pnpm run validate:tenant-isolation && pnpm run validate:encryption-boundary && pnpm run validate:contract && pnpm run type-check && pnpm run lint && pnpm run build && pnpm run validate:dist",
+    "check": "pnpm run validate:content && pnpm run validate:kvs-supplement && pnpm run validate:experience && pnpm run validate:trust && pnpm run validate:data && pnpm run validate:a11y && pnpm run validate:identity && pnpm run validate:cloud-identity && pnpm run test:cloud-identity-api && pnpm run validate:adult-auth && pnpm run validate:external-verifier && pnpm run validate:trusted-role-resolver && pnpm run validate:guardian-consent && pnpm run validate:tenant-isolation && pnpm run validate:encryption-boundary && pnpm run validate:session-security && pnpm run validate:contract && pnpm run type-check && pnpm run lint && pnpm run build && pnpm run validate:dist",
     "format": "prettier --write ."
   },
   "dependencies": {
